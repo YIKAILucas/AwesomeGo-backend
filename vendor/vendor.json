@@ -1,0 +1,91 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "Np8ILMeT+9f/GT5kXEt+eas73P0=",
+			"path": "github.com/apex/log",
+			"revision": "d6c5facec1f2ae23a97782ab0ee18af58734346f",
+			"revisionTime": "2018-10-11T16:46:37Z"
+		},
+		{
+			"checksumSHA1": "c5lst4uR/1qGR8x5ATZJiTNcJto=",
+			"path": "github.com/eclipse/paho.mqtt.golang",
+			"revision": "103f6a1ef3ffa45671307ccb1c88ba2f4834993d",
+			"revisionTime": "2018-11-15T09:51:02Z"
+		},
+		{
+			"checksumSHA1": "ITCnG3uKUnqNXrnnulKokjQKfN4=",
+			"path": "github.com/eclipse/paho.mqtt.golang/packets",
+			"revision": "103f6a1ef3ffa45671307ccb1c88ba2f4834993d",
+			"revisionTime": "2018-11-15T09:51:02Z"
+		},
+		{
+			"checksumSHA1": "QeKwBtN2df+j+4stw3bQJ6yO4EY=",
+			"path": "github.com/gin-contrib/sse",
+			"revision": "22d885f9ecc78bf4ee5d72b937e4bbcdc58e8cae",
+			"revisionTime": "2017-01-09T09:34:21Z"
+		},
+		{
+			"checksumSHA1": "ow9NW7BBNs7ToXqdUcf40f997+8=",
+			"path": "github.com/gin-gonic/gin",
+			"revision": "c65e5efc9a0ae6666819cda8e9a86db4d3d19833",
+			"revisionTime": "2018-10-23T02:56:33Z"
+		},
+		{
+			"checksumSHA1": "2zQvkwtPsCLc+y7YiHQO2R9Oqd0=",
+			"path": "github.com/gin-gonic/gin/binding",
+			"revision": "c65e5efc9a0ae6666819cda8e9a86db4d3d19833",
+			"revisionTime": "2018-10-23T02:56:33Z"
+		},
+		{
+			"checksumSHA1": "Y8Vu2NT4c2ve963fedBxoJyiU6s=",
+			"path": "github.com/gin-gonic/gin/internal/json",
+			"revision": "c65e5efc9a0ae6666819cda8e9a86db4d3d19833",
+			"revisionTime": "2018-10-23T02:56:33Z"
+		},
+		{
+			"checksumSHA1": "afLqBfX9SeIP6eeTZb3WwdTFaOo=",
+			"path": "github.com/gin-gonic/gin/render",
+			"revision": "c65e5efc9a0ae6666819cda8e9a86db4d3d19833",
+			"revisionTime": "2018-10-23T02:56:33Z"
+		},
+		{
+			"checksumSHA1": "GaJLoEuMGnP5ofXvuweAI4wx06U=",
+			"path": "github.com/golang/protobuf/proto",
+			"revision": "d3de96c4c28ef8af3aa1a892fc481e0f103c01ff",
+			"revisionTime": "2018-10-25T22:50:59Z"
+		},
+		{
+			"checksumSHA1": "GiVgQkx5acnq+JZtYiuHPlhHoso=",
+			"path": "github.com/mattn/go-isatty",
+			"revision": "3fb116b820352b7f0c281308a4d6250c22d94e27",
+			"revisionTime": "2018-08-30T10:17:45Z"
+		},
+		{
+			"checksumSHA1": "DTy0iJ2w5C+FDsN9EnzfhNmvS+o=",
+			"path": "github.com/pkg/errors",
+			"revision": "059132a15dd08d6704c67711dae0cf35ab991756",
+			"revisionTime": "2018-10-23T23:59:46Z"
+		},
+		{
+			"checksumSHA1": "5nnYiM98BDngm/Sppbic7HgVa3Y=",
+			"path": "github.com/ugorji/go/codec",
+			"revision": "e5e69e061d4f7ee3a69b793cf9c1b41afe21918e",
+			"revisionTime": "2018-10-22T19:04:02Z"
+		},
+		{
+			"checksumSHA1": "P/k5ZGf0lEBgpKgkwy++F7K1PSg=",
+			"path": "gopkg.in/go-playground/validator.v8",
+			"revision": "5f1438d3fca68893a817e4a66806cea46a9e4ebf",
+			"revisionTime": "2017-07-30T05:02:35Z"
+		},
+		{
+			"checksumSHA1": "ZSWoOPUNRr5+3dhkLK3C4cZAQPk=",
+			"path": "gopkg.in/yaml.v2",
+			"revision": "5420a8b6744d3b0345ab293f6fcba19c978f1183",
+			"revisionTime": "2018-03-28T19:50:20Z"
+		}
+	],
+	"rootPath": "awesomeProject"
+}
