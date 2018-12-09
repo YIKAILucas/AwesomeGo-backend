@@ -10,7 +10,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-	"path/filepath"
 )
 
 type WeChatInfo struct {
@@ -31,18 +30,22 @@ type WeChat interface {
 	PushString(token string, agentId int, content string)
 }
 
-func initWeChat(chat WeChatInfo) {
-	//chat.TokenURL = "https://qyapi.weixin.qq.com/cgi-bin/gettoken"
-	//chat.FileURL = "https://qyapi.weixin.qq.com/cgi-bin/media/upload"
-
-	//chat.CorpId = "ww4a3407dd4c27e725"
-	//chat.CorpSecret = "cOO2IqQXZGwSLYHdaRoMuwo0Bhk4bvrqBH4httj_Vv8"
+func InitWeChatInfo(info *WeChatInfo) {
+	info.TokenURL = "https://qyapi.weixin.qq.com/cgi-bin/gettoken"
+	info.FileURL = "https://qyapi.weixin.qq.com/cgi-bin/media/upload"
+	info.StringURL = "https://qyapi.weixin.qq.com/cgi-bin/message/send"
+	//info.CorpId = "ww4a3407dd4c27e725"
+	//info.CorpSecret = "cOO2IqQXZGwSLYHdaRoMuwo0Bhk4bvrqBH4httj_Vv8"
+	//info.AgentId = 1000003
+	info.CorpId = "ww06bd2f666a354c94"
+	info.CorpSecret = "UINmPVLShl4xDGs1kWfX8dzipbSf45SE2GyVDHWf2ZY"
+	info.AgentId = 1000002
 }
 
 /**
 	企业微信获取token
  */
-func getToken(weChat *WeChat, info WeChatInfo) string {
+func WechatGetToken(weChat *WeChat, info WeChatInfo) string {
 	param := req.Param{
 		"corpid":     info.CorpId,
 		"corpsecret": info.CorpSecret,
@@ -72,56 +75,108 @@ func getToken(weChat *WeChat, info WeChatInfo) string {
 	return mapResult["access_token"]
 }
 
-func UploadFile(weChat *WeChat, info WeChatInfo, token string, fileType string) {
-	header := req.Header{
-		"Accept": "multipart/form-data",
-	}
+func WechatUploadFile(weChat *WeChat, info WeChatInfo, token string, fileType string, file string) {
 	param := req.Param{
 		"access_token": token,
 		"type":         fileType,
 	}
-	r, err := req.Post(info.FileURL, header, param)
+	l, _ := os.Create(file)
+	fileUpload := req.FileUpload{
+		FileName: "123",
+		File:     l,
+	}
+
+	r, err := req.Post(info.FileURL, param, fileUpload)
 	if err != nil {
 		log.Fatal(err)
 	}
 	var foo map[string]string
 	err = r.ToJSON(&foo)
-	panic(err)
+	if err != nil {
+		log.Println(err)
+	}
 
-}
-
-func NewUploadRequest(link string, params map[string]string, name, path string) (*http.Request, error) {
-	fp, err := os.Open(path) // 打开文件句柄
-	if err != nil {
-		return nil, err
-	}
-	defer fp.Close()
-	body := &bytes.Buffer{}                                       // 初始化body参数
-	writer := multipart.NewWriter(body)                           // 实例化multipart
-	part, err := writer.CreateFormFile(name, filepath.Base(path)) // 创建multipart 文件字段
-	if err != nil {
-		return nil, err
-	}
-	_, err = io.Copy(part, fp) // 写入文件数据到multipart
-	for key, val := range params {
-		_ = writer.WriteField(key, val) // 写入body中额外参数，比如七牛上传时需要提供token
-	}
-	err = writer.Close()
-	if err != nil {
-		return nil, err
-	}
-	req, err := http.NewRequest("POST", link, body) // 新建请求
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", "multipart/form-data") // 设置请求头,!!!非常重要，否则远端无法识别请求
-	return req, nil
 }
 
 /**
-	微信推送文本
+企业微信上传文件
  */
-func PushString(token string, agentId int, content string) {
+func NewUploadRequest(link string, name, path string) (string) {
+	client := &http.Client{}
+
+	body := &bytes.Buffer{}                 // 初始化body参数
+	bodyWriter := multipart.NewWriter(body) // 实例化multipart
+
+	// 创建multipart 文件字段
+	fileWriter, err := bodyWriter.CreateFormFile(name, path)
+	if err != nil {
+		return ""
+	}
+	// 打开文件句柄
+	fp, err := os.Open(path)
+	if err != nil {
+		return ""
+	}
+	defer fp.Close()
+
+	// 写入文件数据到multipart
+	_, err = io.Copy(fileWriter, fp)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	contentType := bodyWriter.FormDataContentType()
+	bodyWriter.Close()
+
+	req, err := http.Post(link, contentType, body) // 新建请求
+	if err != nil {
+		return ""
+	}
+	defer req.Body.Close()
+
+	reqBody, err := ioutil.ReadAll(req.Body)
+	var result map[string]string
+	_ = json.Unmarshal(reqBody, &result)
+
+	mediaId := result["media_id"]
+
+	_ = client
+
+	//req.Header.Set("Content-Type", "multipart/form-data") // 设置请求头,!!!非常重要，否则远端无法识别请求
+	//response, err := client.Do(req)
+	return mediaId
+}
+
+/**
+企业微信推送文件
+ */
+func WechatPushFile(info WeChatInfo, token string, agentId int, content string) {
+	log.Println("token:" + token)
+	var fi File = File{
+		ToUser:  "@all",
+		ToParty: "",
+		ToTag:   "",
+		MsgType: "file",
+		AgentId: agentId,
+		Content: map[string]string{"media_id": content},
+		Safe:    0,
+	}
+
+	param := req.Param{
+		"access_token": token,
+	}
+
+	r, err := req.Post(info.StringURL, req.BodyJSON(&fi), param)
+	if err != nil {
+	}
+	x := r.Response().Header
+	_ = x
+}
+
+/**
+微信推送文本
+ */
+func WechatPushString(info WeChatInfo, token string, agentId int, content string) {
 	msgType := "text"
 	log.Println("token:" + token)
 	var mes Message = Message{
@@ -138,9 +193,8 @@ func PushString(token string, agentId int, content string) {
 	param := req.Param{
 		"access_token": token,
 	}
-	sendUrl := "https://qyapi.weixin.qq.com/cgi-bin/message/send"
 
-	r, err := req.Post(sendUrl, req.BodyJSON(&mes), param)
+	r, err := req.Post(info.StringURL, req.BodyJSON(&mes), param)
 	if err != nil {
 	}
 	x := r.Response().Header

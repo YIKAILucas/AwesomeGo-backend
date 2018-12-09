@@ -19,6 +19,16 @@ type Message struct {
 	Content map[string]string `json:"content"`
 	Safe    int               `json:"safe"`
 }
+type File struct {
+	ToUser  string            `json:"touser"`
+	ToParty string            `json:"toparty"`
+	ToTag   string            `json:"totag"`
+	MsgType string            `json:"msgtype"`
+	AgentId int               `json:"agentid"`
+	File    string            `json:"file"`
+	Content map[string]string `json:"content"`
+	Safe    int               `json:"safe"`
+}
 type ImageMessage struct {
 	ToUser  string            `json:"touser"`
 	ToParty string            `json:"toparty"`
@@ -41,13 +51,13 @@ func PushController(c *gin.Context) {
 	info := WeChatInfo{}
 	xin := new(WeChat)
 
-	initWeChat(info)
+	InitWeChatInfo(&info)
 	content := c.Query("content")
-	token := getToken(xin, info)
+	token := WechatGetToken(xin, info)
 
 	log.Println("获取到token为:" + token)
 
-	PushString(token, info.AgentId, content)
+	WechatPushString(info,token, info.AgentId, content)
 	c.String(http.StatusOK, "ok")
 }
 

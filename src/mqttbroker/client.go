@@ -1,4 +1,4 @@
-package mqtt
+package mqttbroker
 
 import (
 	"fmt"
@@ -22,12 +22,12 @@ type MQCallback interface {
 /**
 定义回调函数
  */
-var handlerFunc mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
+var HandlerFunc mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 	fmt.Printf("TOPIC: %s\n", msg.Topic())
 	fmt.Printf("MSG: %s\n", msg.Payload())
 }
 
-func mqConnect(mq *MQ, handler mqtt.MessageHandler) bool {
+func MqConnect(mq *MQ, handler mqtt.MessageHandler) bool {
 	mq.brokerURL = "tcp://106.12.130.179:1883"
 	mq.clientId = string(rand.Int())
 	mq.userName = "golang-server"
@@ -48,19 +48,19 @@ func mqConnect(mq *MQ, handler mqtt.MessageHandler) bool {
 	return mq.client.IsConnected()
 }
 
-func sub(mq *MQ, topic string, qos byte) {
+func Sub(mq *MQ, topic string, qos byte) {
 	if token := mq.client.Subscribe(topic, qos, nil); token.Wait() && token.Error() != nil {
 		fmt.Println(token.Error())
 		os.Exit(1)
 	}
 }
 
-func pub(mq *MQ, topic string, qos byte, payload interface{}, retain bool) {
+func Pub(mq *MQ, topic string, qos byte, payload interface{}, retain bool) {
 	token := mq.client.Publish("chat", 0, retain, payload)
 	token.Wait()
 }
 
-func unSub(mq *MQ, topic string) {
+func UnSub(mq *MQ, topic string) {
 	if token := mq.client.Unsubscribe(topic); token.Wait() && token.Error() != nil {
 		fmt.Println(token.Error())
 		os.Exit(1)

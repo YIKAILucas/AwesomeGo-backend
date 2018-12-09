@@ -1,19 +1,31 @@
 package main
 
 import (
+	"awesomeProject/src/mqttbroker"
+	"awesomeProject/src/routers"
 	"errors"
+	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"os"
 	"time"
-	"awesomeProject/src/routers"
-	"awesomeProject/src/mqtt"
 )
 
+func MqStart() {
+	//mqtt.DEBUG = log.New(os.Stdout, "", 0)
+	mqtt.ERROR = log.New(os.Stdout, "", 0)
+	mq := new(mqttbroker.MQ)
+	mqttbroker.MqConnect(mq, mqttbroker.HandlerFunc)
+	mqttbroker.Sub(mq, "chat", 1)
+
+	//c.Disconnect(250)
+	select {}
+}
 
 func main() {
-
-	go mqtt.MqStart()
+	// 初始化MQTT
+	go MqStart()
 
 	// Create the Gin engine.
 	gin.SetMode(gin.DebugMode)
