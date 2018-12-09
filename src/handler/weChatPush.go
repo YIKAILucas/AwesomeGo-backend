@@ -43,9 +43,9 @@ func InitWeChatInfo(info *WeChatInfo) {
 }
 
 /**
-	企业微信获取token
+企业微信获取token
  */
-func WechatGetToken(weChat *WeChat, info WeChatInfo) string {
+func WechatGetToken(weChat *WeChat, info *WeChatInfo) string {
 	param := req.Param{
 		"corpid":     info.CorpId,
 		"corpsecret": info.CorpSecret,
@@ -101,7 +101,7 @@ func WechatUploadFile(weChat *WeChat, info WeChatInfo, token string, fileType st
 /**
 企业微信上传文件
  */
-func NewUploadRequest(link string, name, path string) (string) {
+func NewUploadRequest(URL string, name, path string) string {
 	client := &http.Client{}
 
 	body := &bytes.Buffer{}                 // 初始化body参数
@@ -128,7 +128,7 @@ func NewUploadRequest(link string, name, path string) (string) {
 	contentType := bodyWriter.FormDataContentType()
 	bodyWriter.Close()
 
-	req, err := http.Post(link, contentType, body) // 新建请求
+	req, err := http.Post(URL, contentType, body) // 新建请求
 	if err != nil {
 		return ""
 	}
@@ -150,7 +150,7 @@ func NewUploadRequest(link string, name, path string) (string) {
 /**
 企业微信推送文件
  */
-func WechatPushFile(info WeChatInfo, token string, agentId int, content string) {
+func WechatPushFile(info *WeChatInfo, token string, agentId int, content string) {
 	log.Println("token:" + token)
 	var fi File = File{
 		ToUser:  "@all",

@@ -53,7 +53,7 @@ func PushController(c *gin.Context) {
 
 	InitWeChatInfo(&info)
 	content := c.Query("content")
-	token := WechatGetToken(xin, info)
+	token := WechatGetToken(xin, &info)
 
 	log.Println("获取到token为:" + token)
 
@@ -89,6 +89,12 @@ func PushFile(c *gin.Context) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	info := &WeChatInfo{}
+	InitWeChatInfo(info)
+	wechat := new(WeChat)
+	mediaID := NewUploadRequest("https://qyapi.weixin.qq.com/cgi-bin/media/upload?access_token="+WechatGetToken(wechat, info)+"&type=file", "mq", out.Name())
+
+	WechatPushFile(info, WechatGetToken(wechat, info), info.AgentId, mediaID)
 	c.String(http.StatusCreated, "upload successful")
 
 }
