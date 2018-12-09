@@ -68,7 +68,7 @@ func Push(token string, agentId int, content string) {
 	}
 }
 func main() {
-	content := "超级测试"
+	content := "文本测试"
 
 	Push(getToken(), 1000002, content)
 
