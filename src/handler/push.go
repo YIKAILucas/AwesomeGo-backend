@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"awesomeProject/src/service"
 	"github.com/gin-gonic/gin"
 	"io"
 	"log"
@@ -29,7 +30,8 @@ type File struct {
 	Content map[string]string `json:"content"`
 	Safe    int               `json:"safe"`
 }
-type ImageMessage struct {
+
+type Image struct {
 	ToUser  string            `json:"touser"`
 	ToParty string            `json:"toparty"`
 	ToTag   string            `json:"totag"`
@@ -38,6 +40,7 @@ type ImageMessage struct {
 	Image   map[string]string `json:"image"`
 	Safe    int               `json:"safe"`
 }
+
 type Result struct {
 	Errcode      string `json:"errcode"`
 	Access_token string `json:"access_token"`
@@ -45,24 +48,27 @@ type Result struct {
 }
 
 /**
-	HTTP 推送文本
+HTTP 推送文本
  */
 func PushController(c *gin.Context) {
-	info := WeChatInfo{}
+	info := &service.CorpWeChatInfo{}
 	xin := new(WeChat)
+	//fac := &service.CompanyFactory()
+	//service.GetCompany(fac)
 
-	InitWeChatInfo(&info)
+
+	service.InitWeChatInfo(info)
 	content := c.Query("content")
-	token := WechatGetToken(xin, &info)
+	token := WechatGetToken(xin, info)
 
 	log.Println("获取到token为:" + token)
 
-	WechatPushString(info,token, info.AgentId, content)
+	WechatPushString(info, token, info.AgentId, content)
 	c.String(http.StatusOK, "ok")
 }
 
 /**
-	HTTP 推送文件
+HTTP 推送文件
  */
 func PushFile(c *gin.Context) {
 	name := c.PostForm("name")
@@ -89,18 +95,20 @@ func PushFile(c *gin.Context) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	info := &WeChatInfo{}
-	InitWeChatInfo(info)
+	info := &service.CorpWeChatInfo{}
+	service.InitWeChatInfo(info)
 	wechat := new(WeChat)
-	mediaID := NewUploadRequest("https://qyapi.weixin.qq.com/cgi-bin/media/upload?access_token="+WechatGetToken(wechat, info)+"&type=file", "mq", out.Name())
-
+	mediaID, err := NewUploadRequest("https://qyapi.weixin.qq.com/cgi-bin/media/upload?access_token="+WechatGetToken(wechat, info)+"&type=file", "mq", out.Name())
+	if err != nil {
+		log.Fatal(err)
+	}
 	WechatPushFile(info, WechatGetToken(wechat, info), info.AgentId, mediaID)
 	c.String(http.StatusCreated, "upload successful")
 
 }
 
 /**
-	HTTP 健康检查
+HTTP 健康检查
  */
 func HealthCheck(c *gin.Context) {
 	message := "OK"

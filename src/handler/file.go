@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"io"
 	"log"
@@ -9,7 +8,7 @@ import (
 	"os"
 )
 
-func MyController() *gin.Engine{
+func MyController() *gin.Engine {
 
 	router := gin.Default()
 	f, _ := os.Create("gin.log")
@@ -40,34 +39,6 @@ func MyController() *gin.Engine{
 			"message": message,
 			"nick":    nick,
 		})
-	})
-
-
-	/**
-文件上传
- */
-	router.POST("/upload", func(c *gin.Context) {
-		name := c.PostForm("name")
-		fmt.Println(name)
-		file, header, err := c.Request.FormFile("upload")
-		if err != nil {
-			c.String(http.StatusBadRequest, "Bad request")
-			return
-		}
-		filename := header.Filename
-
-		fmt.Println(file, err, filename)
-
-		out, err := os.Create(filename)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer out.Close()
-		_, err = io.Copy(out, file)
-		if err != nil {
-			log.Fatal(err)
-		}
-		c.String(http.StatusCreated, "upload successful")
 	})
 
 	/**
@@ -107,21 +78,6 @@ func MyController() *gin.Engine{
 
 		}
 
-	})
-
-	/**
-	分组路由
-	 */
-	v1 := router.Group("/v1")
-
-	v1.GET("/login", func(c *gin.Context) {
-		c.String(http.StatusOK, "v1 login")
-	})
-
-	v2 := router.Group("/v2")
-
-	v2.GET("/login", func(c *gin.Context) {
-		c.String(http.StatusOK, "v2 login")
 	})
 
 	return router

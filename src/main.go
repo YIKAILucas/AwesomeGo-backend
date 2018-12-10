@@ -17,7 +17,7 @@ func MqStart() {
 	mqtt.ERROR = log.New(os.Stdout, "", 0)
 	mq := new(mqttbroker.MQ)
 	mqttbroker.MqConnect(mq, mqttbroker.HandlerFunc)
-	mqttbroker.Sub(mq, "chat", 1)
+	mqttbroker.Sub(mq, "tf/Attendance/v1/notify/", 1)
 
 	//c.Disconnect(250)
 	select {}

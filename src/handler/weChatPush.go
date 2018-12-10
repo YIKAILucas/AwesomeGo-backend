@@ -1,8 +1,10 @@
 package handler
 
 import (
+	"awesomeProject/src/service"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"github.com/imroc/req"
 	"io"
 	"io/ioutil"
@@ -12,40 +14,15 @@ import (
 	"os"
 )
 
-type WeChatInfo struct {
-	TokenURL   string
-	StringURL  string
-	FileURL    string
-	CorpId     string
-	CorpSecret string
-	AgentId    int
-}
-
-type CompanyFactory interface {
-	Work(task *string)
-}
-
 type WeChat interface {
 	getToken()
 	PushString(token string, agentId int, content string)
 }
 
-func InitWeChatInfo(info *WeChatInfo) {
-	info.TokenURL = "https://qyapi.weixin.qq.com/cgi-bin/gettoken"
-	info.FileURL = "https://qyapi.weixin.qq.com/cgi-bin/media/upload"
-	info.StringURL = "https://qyapi.weixin.qq.com/cgi-bin/message/send"
-	//info.CorpId = "ww4a3407dd4c27e725"
-	//info.CorpSecret = "cOO2IqQXZGwSLYHdaRoMuwo0Bhk4bvrqBH4httj_Vv8"
-	//info.AgentId = 1000003
-	info.CorpId = "ww06bd2f666a354c94"
-	info.CorpSecret = "UINmPVLShl4xDGs1kWfX8dzipbSf45SE2GyVDHWf2ZY"
-	info.AgentId = 1000002
-}
-
 /**
 企业微信获取token
  */
-func WechatGetToken(weChat *WeChat, info *WeChatInfo) string {
+func WechatGetToken(weChat *WeChat, info *service.CorpWeChatInfo) string {
 	param := req.Param{
 		"corpid":     info.CorpId,
 		"corpsecret": info.CorpSecret,
@@ -75,7 +52,7 @@ func WechatGetToken(weChat *WeChat, info *WeChatInfo) string {
 	return mapResult["access_token"]
 }
 
-func WechatUploadFile(weChat *WeChat, info WeChatInfo, token string, fileType string, file string) {
+func WechatUploadFile(weChat *WeChat, info service.CorpWeChatInfo, token string, fileType string, file string) {
 	param := req.Param{
 		"access_token": token,
 		"type":         fileType,
@@ -101,7 +78,7 @@ func WechatUploadFile(weChat *WeChat, info WeChatInfo, token string, fileType st
 /**
 企业微信上传文件
  */
-func NewUploadRequest(URL string, name, path string) string {
+func NewUploadRequest(URL string, name, path string) (string, error) {
 	client := &http.Client{}
 
 	body := &bytes.Buffer{}                 // 初始化body参数
@@ -110,12 +87,12 @@ func NewUploadRequest(URL string, name, path string) string {
 	// 创建multipart 文件字段
 	fileWriter, err := bodyWriter.CreateFormFile(name, path)
 	if err != nil {
-		return ""
+		return "", err
 	}
 	// 打开文件句柄
 	fp, err := os.Open(path)
 	if err != nil {
-		return ""
+		return "", err
 	}
 	defer fp.Close()
 
@@ -130,7 +107,7 @@ func NewUploadRequest(URL string, name, path string) string {
 
 	req, err := http.Post(URL, contentType, body) // 新建请求
 	if err != nil {
-		return ""
+		return "", err
 	}
 	defer req.Body.Close()
 
@@ -144,13 +121,17 @@ func NewUploadRequest(URL string, name, path string) string {
 
 	//req.Header.Set("Content-Type", "multipart/form-data") // 设置请求头,!!!非常重要，否则远端无法识别请求
 	//response, err := client.Do(req)
-	return mediaId
+	if mediaId == "" {
+		var val error = errors.New("没有获取到文件")
+		return mediaId, val
+	}
+	return mediaId, err
 }
 
 /**
 企业微信推送文件
  */
-func WechatPushFile(info *WeChatInfo, token string, agentId int, content string) {
+func WechatPushFile(info *service.CorpWeChatInfo, token string, agentId int, content string) {
 	log.Println("token:" + token)
 	var fi File = File{
 		ToUser:  "@all",
@@ -176,7 +157,7 @@ func WechatPushFile(info *WeChatInfo, token string, agentId int, content string)
 /**
 微信推送文本
  */
-func WechatPushString(info WeChatInfo, token string, agentId int, content string) {
+func WechatPushString(info *service.CorpWeChatInfo, token string, agentId int, content string) {
 	msgType := "text"
 	log.Println("token:" + token)
 	var mes Message = Message{

@@ -19,7 +19,7 @@ type MQCallback interface {
 	handlerFunc(client mqtt.Client, msg mqtt.Message)
 }
 
-/**
+/*
 定义回调函数
  */
 var HandlerFunc mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
