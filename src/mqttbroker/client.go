@@ -1,7 +1,10 @@
 package mqttbroker
 
 import (
+	"awesomeProject/src/model"
+	"encoding/json"
 	"fmt"
+	"github.com/lexkong/log"
 	"math/rand"
 	"os"
 	"time"
@@ -19,12 +22,34 @@ type MQCallback interface {
 	handlerFunc(client mqtt.Client, msg mqtt.Message)
 }
 
+type Content struct {
+	Content string `json:"content"`
+}
+
+var ChannelString chan string = make(chan string,5)
 /*
 定义回调函数
  */
 var HandlerFunc mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 	fmt.Printf("TOPIC: %s\n", msg.Topic())
 	fmt.Printf("MSG: %s\n", msg.Payload())
+	//var m Content
+	var m map[string]string
+	// TODO 添加责任链模式解析json
+	err := json.Unmarshal(msg.Payload(), &m)
+	if err != nil {
+		log.Error("sub解析错误:", err)
+	}
+
+	user := model.User{}
+	user.Name = ""
+	user.Balance = ""
+	rel, err := model.X.Insert(user)
+	_ = rel
+
+	ChannelString <- m["content"]
+	fmt.Println(len(ChannelString))
+
 }
 
 func MqConnect(mq *MQ, handler mqtt.MessageHandler) bool {

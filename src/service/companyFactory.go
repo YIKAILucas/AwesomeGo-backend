@@ -26,7 +26,7 @@ func InitWeChatInfo(info *CorpWeChatInfo) {
 	info.AgentId = 1000002
 }
 
-func GetCompany(companyFactory *CompanyFactory, corpName string) *CorpWeChatInfo {
+func CreateCompany(companyFactory *CompanyFactory, corpName string) *CorpWeChatInfo {
 	// TODO 根据生产的工厂决定CorpWeChatInfo的属性
 	switch corpName {
 	case "tenghui":
