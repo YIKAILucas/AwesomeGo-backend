@@ -19,7 +19,7 @@ type WeChat interface {
 	PushString(token string, agentId int, content string)
 }
 
-/**
+/*
 企业微信获取token
  */
 func WechatGetToken(weChat *WeChat, info *service.CorpWeChatInfo) string {
@@ -52,7 +52,8 @@ func WechatGetToken(weChat *WeChat, info *service.CorpWeChatInfo) string {
 	return mapResult["access_token"]
 }
 
-func WechatUploadFile(weChat *WeChat, info service.CorpWeChatInfo, token string, fileType string, file string) {
+// TODO 测试使用req库
+func WechatUploadFile(weChat *WeChat, info *service.CorpWeChatInfo, token string, fileType string, file string) {
 	param := req.Param{
 		"access_token": token,
 		"type":         fileType,
@@ -75,7 +76,7 @@ func WechatUploadFile(weChat *WeChat, info service.CorpWeChatInfo, token string,
 
 }
 
-/**
+/*
 企业微信上传文件
  */
 func NewUploadRequest(URL string, name, path string) (string, error) {
@@ -128,7 +129,7 @@ func NewUploadRequest(URL string, name, path string) (string, error) {
 	return mediaId, err
 }
 
-/**
+/*
 企业微信推送文件
  */
 func WechatPushFile(info *service.CorpWeChatInfo, token string, agentId int, content string) {
@@ -154,7 +155,7 @@ func WechatPushFile(info *service.CorpWeChatInfo, token string, agentId int, con
 	_ = x
 }
 
-/**
+/*
 微信推送文本
  */
 func WechatPushString(info *service.CorpWeChatInfo, token string, agentId int, content string) {
