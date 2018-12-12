@@ -37,7 +37,10 @@ func InfoInit(mq *BrokerInfo) {
 
 func init() {
 	mq := &BrokerInfo{}
-	MqConnect(mq, HandlerFunc)
+	InfoInit(mq)
+	if (MqConnect(mq, HandlerFunc)) {
+		fmt.Println("ok")
+	}
 }
 
 func MqConnect(mq *BrokerInfo, handler mqtt.MessageHandler) bool {

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SERVER="main"
+SERVER=main
 BASE_DIR=$PWD
 INTERVAL=2
 

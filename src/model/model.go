@@ -19,17 +19,17 @@ type User struct {
 //定义orm引擎
 var X *xorm.Engine
 
-//创建orm引擎
-func init() {
-	var err error
-	X, err = xorm.NewEngine("mysql", "root:123@tcp(127.0.0.1:3306)/acke?charset=utf8")
-	if err != nil {
-		log.Fatal("数据库连接失败:", err)
-	}
-	if err := X.Sync(new(User)); err != nil {
-		log.Fatal("数据表同步失败:", err)
-	}
-}
+////创建orm引擎
+//func init() {
+//	var err error
+//	X, err = xorm.NewEngine("mysql", "root:123@tcp(127.0.0.1:3306)/acke?charset=utf8")
+//	if err != nil {
+//		log.Fatal("数据库连接失败:", err)
+//	}
+//	if err := X.Sync(new(User)); err != nil {
+//		log.Fatal("数据表同步失败:", err)
+//	}
+//}
 
 //增
 func Insert(name string, balance string) (int64, bool) {

@@ -15,12 +15,10 @@ import (
 func MqStart() {
 	//mqtt.DEBUG = log.New(os.Stdout, "", 0)
 	mqtt.ERROR = log.New(os.Stdout, "", 0)
-	mq := new(mqttbroker.MQ)
+	mq := new(mqttbroker.BrokerInfo)
 	mqttbroker.MqConnect(mq, mqttbroker.HandlerFunc)
 	mqttbroker.Sub(mq, "tf/Attendance/v1/notify", 1)
 	mqttbroker.Sub(mq, "chat", 1)
-
-
 
 	//c.Disconnect(250)
 	select {}
@@ -28,7 +26,7 @@ func MqStart() {
 
 func main() {
 	// 初始化MQTT
-	go MqStart()
+	//go MqStart()
 
 	// Create the Gin engine.
 	gin.SetMode(gin.DebugMode)

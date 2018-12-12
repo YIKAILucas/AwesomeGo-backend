@@ -21,9 +21,11 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 
 	weChat := g.Group("weChat")
 	{
-		weChat.POST("/push", handler.PushController)
 		weChat.POST("/pushfile", handler.PushFile)
 	}
-
+	wechat := g.Group("wechat")
+	{
+		wechat.POST("/push", handler.PushController)
+	}
 	return g
 }
