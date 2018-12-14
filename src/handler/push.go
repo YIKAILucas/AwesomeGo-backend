@@ -58,6 +58,7 @@ func PushController(c *gin.Context) {
 
 
 	service.InitWeChatInfo(info)
+	service.CreateCompany()
 	content := c.Query("content")
 	token := WechatGetToken(xin, info)
 

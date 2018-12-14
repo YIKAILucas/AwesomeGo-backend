@@ -1,11 +1,7 @@
 package mqttbroker
 
 import (
-	"awesomeProject/src/model"
-	"encoding/json"
 	"fmt"
-	"github.com/lexkong/log"
-	"math/rand"
 	"os"
 	"time"
 
@@ -31,17 +27,10 @@ type BrokerInfo struct {
 
 func InfoInit(mq *BrokerInfo) {
 	mq.brokerURL = "tcp://106.12.130.179:1883"
-	mq.clientId = string(rand.Int())
+	mq.clientId = "acke"
 	mq.userName = "golang-server"
 }
 
-func init() {
-	mq := &BrokerInfo{}
-	InfoInit(mq)
-	if (MqConnect(mq, HandlerFunc)) {
-		fmt.Println("ok")
-	}
-}
 
 func MqConnect(mq *BrokerInfo, handler mqtt.MessageHandler) bool {
 	// 连接broker
@@ -67,21 +56,21 @@ var HandlerFunc mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message)
 	fmt.Printf("TOPIC: %s\n", msg.Topic())
 	fmt.Printf("MSG: %s\n", msg.Payload())
 	//var m Content
-	var m map[string]string
-	// TODO 添加责任链模式解析json
-	err := json.Unmarshal(msg.Payload(), &m)
-	if err != nil {
-		log.Error("sub解析错误:", err)
-	}
-
-	user := model.User{}
-	user.Name = ""
-	user.Balance = ""
-	rel, err := model.X.Insert(user)
-	_ = rel
-
-	ChannelString <- m["content"]
-	fmt.Println(len(ChannelString))
+	//var m map[string]string
+	//// TODO 添加责任链模式解析json
+	//err := json.Unmarshal(msg.Payload(), &m)
+	//if err != nil {
+	//	log.Error("sub解析错误:", err)
+	//}
+	//
+	//user := model.User{}
+	//user.Name = ""
+	//user.Balance = ""
+	//rel, err := model.X.Insert(user)
+	//_ = rel
+	//
+	//ChannelString <- m["content"]
+	//fmt.Println(len(ChannelString))
 
 }
 
