@@ -26,7 +26,7 @@ func MqStart() {
 
 func main() {
 	// 初始化MQTT
-	go MqStart()
+	//go MqStart()
 
 	// Create the Gin engine.
 	gin.SetMode(gin.DebugMode)

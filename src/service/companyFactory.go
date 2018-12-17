@@ -53,7 +53,7 @@ func Acke(info *CorpWeChatInfo) *CorpWeChatInfo {
 /*
 企业信息工厂
   */
-func CreateCompany(companyFactory *CompanyFactory, corpName string) *CorpWeChatInfo {
+func CreateCompany(corpName string) *CorpWeChatInfo {
 	switch corpName {
 	case "tenghui":
 		info := &CorpWeChatInfo{}

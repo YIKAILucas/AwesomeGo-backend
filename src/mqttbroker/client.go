@@ -2,6 +2,7 @@ package mqttbroker
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"time"
 
@@ -27,10 +28,9 @@ type BrokerInfo struct {
 
 func InfoInit(mq *BrokerInfo) {
 	mq.brokerURL = "tcp://106.12.130.179:1883"
-	mq.clientId = "acke"
+	mq.clientId = string(rand.Int())
 	mq.userName = "golang-server"
 }
-
 
 func MqConnect(mq *BrokerInfo, handler mqtt.MessageHandler) bool {
 	// 连接broker

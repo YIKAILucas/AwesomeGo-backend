@@ -58,7 +58,7 @@ func PushController(c *gin.Context) {
 
 
 	service.InitWeChatInfo(info)
-	service.CreateCompany()
+	service.CreateCompany("acke")
 	content := c.Query("content")
 	token := WechatGetToken(xin, info)
 
@@ -86,7 +86,7 @@ func PushFile(c *gin.Context) {
 	// 设置时间戳 使用模板格式化为日期字符串
 	dataTimeStr := time.Unix(time.Now().Unix(), 0).Format(timeLayout)
 
-	out, err := os.Create("/Users/acke/www/" + dataTimeStr + "-" + filename)
+	out, err := os.Create("~/www/" + dataTimeStr + "-" + filename)
 	if err != nil {
 		log.Fatal(err)
 	}
