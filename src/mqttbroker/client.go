@@ -2,11 +2,10 @@ package mqttbroker
 
 import (
 	"fmt"
-	"math/rand"
 	"os"
 	"time"
 
-	"github.com/eclipse/paho.mqtt.golang"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 type MQCallback interface {
@@ -18,6 +17,8 @@ type Content struct {
 }
 
 var ChannelString chan string = make(chan string, 5)
+var DeviceControlChannel = make(chan mqtt.Message, 2000)
+var DeviceInfoChannel = make(chan mqtt.Message, 2000)
 
 type BrokerInfo struct {
 	client    mqtt.Client
@@ -28,7 +29,8 @@ type BrokerInfo struct {
 
 func InfoInit(mq *BrokerInfo) {
 	mq.brokerURL = "tcp://106.12.130.179:1883"
-	mq.clientId = string(rand.Int())
+	//mq.clientId = string(rand.Int())
+	mq.clientId = "E470-B8A3-1CA9"
 	mq.userName = "golang-server"
 }
 
@@ -51,7 +53,7 @@ func MqConnect(mq *BrokerInfo, handler mqtt.MessageHandler) bool {
 
 /*
 定义回调函数
- */
+*/
 var HandlerFunc mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 	fmt.Printf("TOPIC: %s\n", msg.Topic())
 	fmt.Printf("MSG: %s\n", msg.Payload())
@@ -74,8 +76,16 @@ var HandlerFunc mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message)
 
 }
 
-func Sub(mq *BrokerInfo, topic string, qos byte) {
-	if token := mq.client.Subscribe(topic, qos, nil); token.Wait() && token.Error() != nil {
+var DeviceControlHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
+	DeviceControlChannel <- msg
+}
+
+var DeviceInfoHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
+	DeviceInfoChannel <- msg
+}
+
+func Sub(mq *BrokerInfo, topic string, qos byte, callback mqtt.MessageHandler) {
+	if token := mq.client.Subscribe(topic, qos, callback); token.Wait() && token.Error() != nil {
 		fmt.Println(token.Error())
 		os.Exit(1)
 	}

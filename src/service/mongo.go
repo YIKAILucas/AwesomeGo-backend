@@ -2,11 +2,12 @@ package service
 
 import (
 	"fmt"
+	"log"
+	_ "log"
+
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	_ "gopkg.in/mgo.v2/bson"
-	"log"
-	_ "log"
 )
 
 type Operater struct {
@@ -24,7 +25,7 @@ type person struct {
 
 //连接数据库
 func (operater *Operater) connect() error {
-	url := "127.0.0.1:27017"
+	url := "106.12.130.179:27017"
 	mogsession, err := mgo.Dial(url)
 	if err != nil {
 		fmt.Println(err)
@@ -34,7 +35,7 @@ func (operater *Operater) connect() error {
 	return nil
 }
 
-var url = "127.0.0.1:27017"
+var url = "106.12.130.179:27017"
 var db_name = "日志"
 var table = "Warning"
 

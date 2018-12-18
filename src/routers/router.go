@@ -3,8 +3,9 @@ package routers
 import (
 	"awesomeProject/src/handler"
 	"awesomeProject/src/routers/middleware"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
@@ -26,6 +27,11 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 	wechat := g.Group("wechat")
 	{
 		wechat.POST("/push", handler.PushController)
+	}
+	devices := g.Group("devices")
+	{
+		devices.POST("/control", handler.DeviceControl)
+		devices.POST("/info", handler.DeviceInfo)
 	}
 	return g
 }
