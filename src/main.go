@@ -1,12 +1,15 @@
 package main
 
 import (
+	"awesomeProject/src/config"
 	"awesomeProject/src/mongo"
 	"awesomeProject/src/mqttbroker"
 	"awesomeProject/src/routers"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 	"log"
 	"net/http"
 	"os"
@@ -96,8 +99,18 @@ func MqSaveDeviceInfoLoop() {
 		}
 	}
 }
-
+var (
+	cfg = pflag.StringP("config", "c", "", "apiserver config file path.")
+)
 func main() {
+	pflag.Parse()
+
+	// init config
+	if err := config.Init(*cfg); err != nil {
+		panic(err)
+	}
+
+
 	// 初始化MQTT
 	go MqStart()
 	go MqSaveDeviceControlLoop()
@@ -126,14 +139,14 @@ func main() {
 	}()
 
 	log.Printf("Start to listening the incoming requests on http address: %s", ":8080")
-	log.Printf(http.ListenAndServe(":8080", g).Error())
+	log.Printf(http.ListenAndServe(viper.GetString("addr"), g).Error())
 }
 
 // pingServer pings the http server to make sure the router is working.
 func pingServer() error {
-	for i := 0; i < 2; i++ {
+	for i := 0; i < viper.GetInt("max_ping_count"); i++ {
 		// Ping the server by sending a GET request to `/health`.
-		resp, err := http.Get("http://127.0.0.1:8080" + "/wechat/push")
+		resp, err := http.Get(viper.GetString("url") + "/sd/health")
 		if err == nil && resp.StatusCode == 200 {
 			return nil
 		}
