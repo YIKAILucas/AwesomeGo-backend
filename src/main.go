@@ -2,14 +2,13 @@ package main
 
 import (
 	"awesomeProject/src/config"
+	"awesomeProject/src/handler"
 	"awesomeProject/src/mongo"
 	"awesomeProject/src/mqttbroker"
 	"awesomeProject/src/routers"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 	"log"
 	"net/http"
 	"os"
@@ -17,6 +16,8 @@ import (
 
 	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -36,7 +37,10 @@ func MqStart() {
 	mqttbroker.Sub(mq, "tf/Attendance/v1/devices/+/info", 1, mqttbroker.DeviceInfoHandler)
 	//mqttbroker.Sub(mq, "tf/Attendance/v1/devices/A6AF-C135-5D68/info", 1, mqttbroker.DeviceInfoHandler)
 	//c.Disconnect(250)
-	select {}
+
+	for data := range handler.HTTPPubChannel {
+		mqttbroker.Pub(mq, data.Topic, 1, data.Payload, false)
+	}
 }
 
 func MqSaveDeviceControlLoop() {
@@ -99,9 +103,11 @@ func MqSaveDeviceInfoLoop() {
 		}
 	}
 }
+
 var (
 	cfg = pflag.StringP("config", "c", "", "apiserver config file path.")
 )
+
 func main() {
 	pflag.Parse()
 
@@ -109,7 +115,6 @@ func main() {
 	if err := config.Init(*cfg); err != nil {
 		panic(err)
 	}
-
 
 	// 初始化MQTT
 	go MqStart()

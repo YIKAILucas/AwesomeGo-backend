@@ -31,7 +31,7 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 	devices := g.Group("devices")
 	{
 		devices.POST("/control", handler.DeviceControl)
-		devices.POST("/info", handler.DeviceInfo)
+		devices.GET("/info/:id", handler.DeviceInfo)
 	}
 	return g
 }
