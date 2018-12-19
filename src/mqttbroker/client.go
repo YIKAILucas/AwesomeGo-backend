@@ -91,9 +91,12 @@ func Sub(mq *BrokerInfo, topic string, qos byte, callback mqtt.MessageHandler) {
 	}
 }
 
-func Pub(mq *BrokerInfo, topic string, qos byte, payload interface{}, retain bool) {
-	token := mq.client.Publish("chat", 0, retain, payload)
-	token.Wait()
+func Pub(mq *BrokerInfo, topic string, qos byte, payload interface{}, retain bool) error {
+	token := mq.client.Publish(topic, qos, retain, payload)
+	if token.Wait() && token.Error() != nil {
+		return token.Error()
+	}
+	return nil
 }
 
 func UnSub(mq *BrokerInfo, topic string) {

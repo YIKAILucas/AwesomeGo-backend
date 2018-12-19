@@ -2,6 +2,7 @@ package handler
 
 import (
 	"awesomeProject/src/mongo"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -25,7 +26,7 @@ type http_recv struct {
 
 type HTTPPubDadaSheet struct {
 	Topic   string
-	Payload map[string]interface{}
+	Payload []byte
 }
 
 // 发送控制指令到设备(即：发布一条消息到MQTT)
@@ -34,6 +35,7 @@ func DeviceControl(c *gin.Context) {
 	err := c.ShouldBindJSON(&recv)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "数据解析失败", "err": err})
+		return
 	}
 	json_data := make(map[string]interface{})
 	json_data["id"] = time.Now().UnixNano() / 1e3 // ID为16位时间戳
@@ -46,8 +48,9 @@ func DeviceControl(c *gin.Context) {
 	}
 	var pub_data HTTPPubDadaSheet
 	pub_data.Topic = fmt.Sprintf("tf/Attendance/v1/devices/%s/control", recv.DeviceId)
-	pub_data.Payload = json_data
+	pub_data.Payload, _ = json.Marshal(json_data)
 	HTTPPubChannel <- pub_data
+	c.JSON(http.StatusOK, gin.H{"id": json_data["id"]})
 	fmt.Printf("收到HTTP控制指令，ID: %d，话题：%s\n", json_data["id"], pub_data.Topic)
 }
 
@@ -57,10 +60,16 @@ func DeviceInfo(c *gin.Context) {
 	id, err := strconv.ParseFloat(c.Param("id"), 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "ID格式错误"})
+		return
 	}
 	db_data := make(map[string]interface{})
 	mongo.FindOne(DB_NAME, DB_COLLECTION, bson.M{"id": id}, nil, db_data)
-	c.JSON(http.StatusOK, db_data)
+	if len(db_data) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"message": "未找到对应的记录！"})
+	} else {
+		c.JSON(http.StatusOK, db_data)
+		return
+	}
 }
 
 // 由时间戳生成ID： time.Now().UnixNano()/ 1e3

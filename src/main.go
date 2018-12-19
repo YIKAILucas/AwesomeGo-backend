@@ -39,7 +39,10 @@ func MqStart() {
 	//c.Disconnect(250)
 
 	for data := range handler.HTTPPubChannel {
-		mqttbroker.Pub(mq, data.Topic, 1, data.Payload, false)
+		err := mqttbroker.Pub(mq, data.Topic, 1, data.Payload, false)
+		if err != nil {
+			fmt.Printf("消息发布失败：%s,Payload：%s", data.Topic, data.Payload)
+		}
 	}
 }
 
@@ -53,7 +56,7 @@ func MqSaveDeviceControlLoop() {
 
 		err := json.Unmarshal(payload, &json_data)
 		if err != nil {
-			fmt.Println("话题：%s 的消息，JSON解码失败", topic)
+			fmt.Printf("话题：%s 的消息，JSON解码失败", topic)
 		}
 		json_data["topic"] = data.Topic()
 		json_data["result"] = make(map[string]interface{})
@@ -69,7 +72,11 @@ func MqSaveDeviceControlLoop() {
 		json_data["create_time"] = time.Now()
 		json_data["last_update_time"] = time.Now()
 		mongo.Insert(DB_NAME, DB_COLLECTION, json_data)
-		fmt.Printf("控制指令已存入，ID: %d，话题：%s\n", json_data["id"], topic)
+		if fmt.Sprintf("%T", json_data["id"]) == "string" {
+			fmt.Printf("控制指令已存入，ID: %s，话题：%s\n", json_data["id"], topic)
+		} else {
+			fmt.Printf("控制指令已存入，ID: %.f，话题：%s\n", json_data["id"], topic)
+		}
 	}
 }
 
@@ -97,9 +104,17 @@ func MqSaveDeviceInfoLoop() {
 			db_data["result"] = result
 			db_data["last_update_time"] = time.Now()
 			mongo.Update(DB_NAME, DB_COLLECTION, bson.M{"id": json_data["id"]}, db_data)
-			fmt.Printf("设备信息已存入，ID：%d，话题：%s\n", json_data["id"], topic)
+			if fmt.Sprintf("%T", json_data["id"]) == "string" {
+				fmt.Printf("设备信息已存入，ID：%s，话题：%s\n", json_data["id"], topic)
+			} else {
+				fmt.Printf("设备信息已存入，ID：%.f，话题：%s\n", json_data["id"], topic)
+			}
 		} else {
-			fmt.Printf("设备信息未存入，ID：%d，未找到对应的表项\n", json_data["id"])
+			if fmt.Sprintf("%T", json_data["id"]) == "string" {
+				fmt.Printf("设备信息未存入，ID：%s，未找到对应的表项\n", json_data["id"])
+			} else {
+				fmt.Printf("设备信息未存入，ID：%.f，未找到对应的表项\n", json_data["id"])
+			}
 		}
 	}
 }
