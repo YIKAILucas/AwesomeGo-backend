@@ -46,7 +46,7 @@ func openDB(username, password, addr, name string) *gorm.DB {
 
 	return db
 }
-//"root:root@(106.12.130.179:3307)/acke_test?
+
 func setupDB(db *gorm.DB) {
 	db.LogMode(viper.GetBool("db.log"))
 	db.DB().SetMaxOpenConns(viper.GetInt("db.max_open_connection")) // 用于设置最大打开的连接数，默认值为0表示不限制.设置最大的连接数，可以避免并发太高导致连接mysql出现too many connections的错误。

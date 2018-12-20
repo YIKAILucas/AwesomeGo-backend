@@ -1,4 +1,4 @@
-package mqttbroker
+package main
 
 import (
 	"fmt"
