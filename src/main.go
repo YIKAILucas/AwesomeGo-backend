@@ -3,6 +3,7 @@ package main
 import (
 	"awesomeProject/src/config"
 	"awesomeProject/src/handler"
+	"awesomeProject/src/model"
 	"awesomeProject/src/mongo"
 	"awesomeProject/src/mqttbroker"
 	"awesomeProject/src/routers"
@@ -103,6 +104,8 @@ func MqSaveDeviceInfoLoop() {
 			result["result"] = json_data["result"]
 			db_data["result"] = result
 			db_data["last_update_time"] = time.Now()
+			fmt.Println(json_data)
+
 			mongo.Update(DB_NAME, DB_COLLECTION, bson.M{"id": json_data["id"]}, db_data)
 			if fmt.Sprintf("%T", json_data["id"]) == "string" {
 				fmt.Printf("设备信息已存入，ID：%s，话题：%s\n", json_data["id"], topic)
@@ -125,16 +128,16 @@ var (
 
 func main() {
 	pflag.Parse()
-
 	// init config
 	if err := config.Init(*cfg); err != nil {
 		panic(err)
 	}
+	model.DBInit()
 
 	// 初始化MQTT
-	go MqStart()
-	go MqSaveDeviceControlLoop()
-	go MqSaveDeviceInfoLoop()
+	//go MqStart()
+	//go MqSaveDeviceControlLoop()
+	//go MqSaveDeviceInfoLoop()
 
 	// Create the Gin engine.
 	gin.SetMode(gin.DebugMode)

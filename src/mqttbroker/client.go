@@ -30,7 +30,7 @@ type BrokerInfo struct {
 func InfoInit(mq *BrokerInfo) {
 	mq.brokerURL = "tcp://106.12.130.179:1883"
 	//mq.clientId = string(rand.Int())
-	mq.clientId = "E470-B8A3-1CA9"
+	mq.clientId = "E470-B8A3-1"
 	mq.userName = "golang-server"
 }
 
@@ -39,6 +39,7 @@ func MqConnect(mq *BrokerInfo, handler mqtt.MessageHandler) bool {
 	opts := mqtt.NewClientOptions().AddBroker(mq.brokerURL).SetClientID(mq.clientId)
 	opts.SetUsername(mq.userName)
 	opts.SetKeepAlive(30 * time.Second)
+	opts.SetAutoReconnect(true)
 	// 设置回调
 	opts.SetDefaultPublishHandler(handler)
 	//opts.SetPingTimeout(1 * time.Second)
