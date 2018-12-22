@@ -1,7 +1,7 @@
-package common
+package response
 
 import (
-	"awesomeProject/src/errno"
+	"awesomeProject/src/common/errno"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )

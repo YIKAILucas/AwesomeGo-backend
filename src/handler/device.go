@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"awesomeProject/src/mongo"
+	"awesomeProject/src/middleware/mongo"
 	"encoding/json"
 	"fmt"
 	"net/http"

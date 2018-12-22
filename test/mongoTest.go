@@ -1,7 +1,7 @@
 package main
 
 import (
-	"awesomeProject/src/mongo"
+	"awesomeProject/src/middleware/mongo"
 	"fmt"
 	"reflect"
 )

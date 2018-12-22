@@ -64,7 +64,7 @@ var DeviceOnlineHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.
 		fmt.Println("设备上线消息解码失败")
 		return
 	}
-	info := model.DevicesOnlineOffLineStatus{DeviceId: json_data.DeviceId, OnlineAt: time.Now()}
+	info := model.DevicesLifeCycle{DeviceId: json_data.DeviceId, OnlineAt: time.Now()}
 	err = model.DB.Create(&info).Error
 	if err != nil {
 		fmt.Printf("设备%s上线消息添加失败：%s\n", json_data.DeviceId, err)
@@ -105,11 +105,11 @@ var DeviceOfflineHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt
 		fmt.Println("设备下线消息解码失败")
 		return
 	}
-	var info model.DevicesOnlineOffLineStatus
-	model.DB.Where(&model.DevicesOnlineOffLineStatus{DeviceId: json_data.DeviceId}).Last(&info)
+	var info model.DevicesLifeCycle
+	model.DB.Where(&model.DevicesLifeCycle{DeviceId: json_data.DeviceId}).Last(&info)
 	if info.DeviceId == "" {
 		// 没有记录时，生成一条
-		new_info := model.DevicesOnlineOffLineStatus{DeviceId: json_data.DeviceId, OfflineAt: time.Now()}
+		new_info := model.DevicesLifeCycle{DeviceId: json_data.DeviceId, OfflineAt: time.Now()}
 		err = model.DB.Create(&new_info).Error
 		if err != nil {
 			fmt.Printf("设备%s下线消息添加失败：%s\n", json_data.DeviceId, err)
@@ -118,7 +118,7 @@ var DeviceOfflineHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt
 		fmt.Printf("设备%s下线信息已添加\n", json_data.DeviceId)
 	} else if info.DeviceId != "" && !info.OfflineAt.IsZero() {
 		// 有记录且已填时，生成一条
-		new_info := model.DevicesOnlineOffLineStatus{DeviceId: json_data.DeviceId, OfflineAt: time.Now()}
+		new_info := model.DevicesLifeCycle{DeviceId: json_data.DeviceId, OfflineAt: time.Now()}
 		err = model.DB.Create(&new_info).Error
 		if err != nil {
 			fmt.Printf("设备%s下消息添加失败：%s\n", json_data.DeviceId, err)
@@ -127,7 +127,7 @@ var DeviceOfflineHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt
 		fmt.Printf("设备%s下线信息已添加\n", json_data.DeviceId)
 	} else if info.DeviceId != "" && info.OfflineAt.IsZero() {
 		// 有记录且未填时，更新一条
-		model.DB.Model(&info).Update(model.DevicesOnlineOffLineStatus{OfflineAt: time.Now()})
+		model.DB.Model(&info).Update(model.DevicesLifeCycle{OfflineAt: time.Now()})
 		fmt.Printf("设备%s下线信息已更新\n", json_data.DeviceId)
 	}
 }

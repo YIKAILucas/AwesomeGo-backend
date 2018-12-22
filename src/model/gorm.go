@@ -22,32 +22,6 @@ type User struct {
 	IgnoreMe int `gorm:"-"` // 忽略这个字段
 }
 
-type Product struct {
-	gorm.Model
-	Code  string
-	Price uint
-}
-
-type Device struct {
-	/* 设备信息表 */
-	gorm.Model
-	DeviceId   string `gorm:"not null;unique;size:14"`
-	DeviceName string `gorm:"size:255"`
-	Version    string `gorm:"size:100"`
-	IP         string `gorm:"size:100"`
-}
-
-type DevicesOnlineOffLineStatus struct {
-	/* 设备在线离线状态储存表 */
-	gorm.Model
-	DeviceId  string    `gorm:"not null;size:14"`
-	OnlineAt  time.Time `gorm:"default:null"` // 上线时间
-	OfflineAt time.Time `gorm:"default:null"` // 下线时间
-}
-
-func (d DevicesOnlineOffLineStatus) TableName() string {
-	return "devices_online_offline_status"
-}
 
 func DBInit() {
 	config := fmt.Sprintf("%s:%s@(%s)/%s?charset=utf8&parseTime=%t&loc=%s",
@@ -68,7 +42,7 @@ func DBInit() {
 	DB.DB().SetMaxOpenConns(viper.GetInt("db.max_open_connection")) // 用于设置最大打开的连接数，默认值为0表示不限制.设置最大的连接数，可以避免并发太高导致连接mysql出现too many connections的错误。
 	DB.DB().SetMaxIdleConns(viper.GetInt("db.max_idle_connection")) // 用于设置闲置的连接数.设置闲置的连接数则当开启的一个连接使用完成后可以放在池里等候下一次使用。
 	// 自动迁移模式
-	DB.AutoMigrate(&User{}, &Product{}, &Device{}, &DevicesOnlineOffLineStatus{})
+	DB.AutoMigrate(&User{}, &Device{}, &DevicesLifeCycle{})
 	// 启用日志记录器
 	DB.LogMode(true)
 	user := User{Name: "Jinzhu", Age: 18, Birthday: time.Now()}

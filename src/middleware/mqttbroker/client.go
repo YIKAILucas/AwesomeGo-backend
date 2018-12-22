@@ -1,7 +1,7 @@
 package mqttbroker
 
 import (
-	"awesomeProject/src/mongo"
+	"awesomeProject/src/middleware/mongo"
 	"encoding/json"
 	"fmt"
 	"os"

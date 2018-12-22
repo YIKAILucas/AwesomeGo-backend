@@ -1,10 +1,10 @@
 package main
 
 import (
-	"awesomeProject/src/config"
+	"awesomeProject/src/conf"
 	"awesomeProject/src/handler"
 	"awesomeProject/src/model"
-	"awesomeProject/src/mqttbroker"
+	"awesomeProject/src/middleware/mqttbroker"
 	"awesomeProject/src/routers"
 	"errors"
 	"fmt"
@@ -42,13 +42,13 @@ func MqStart() {
 }
 
 var (
-	cfg = pflag.StringP("config", "c", "", "apiserver config file path.")
+	cfg = pflag.StringP("conf", "c", "", "apiserver conf file path.")
 )
 
 func main() {
 	pflag.Parse()
-	// init config
-	if err := config.Init(*cfg); err != nil {
+	// init conf
+	if err := conf.Init(*cfg); err != nil {
 		panic(err)
 	}
 	model.DBInit()
