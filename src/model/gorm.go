@@ -41,8 +41,8 @@ type DevicesOnlineOffLineStatus struct {
 	/* 设备在线离线状态储存表 */
 	gorm.Model
 	DeviceId  string    `gorm:"not null;size:14"`
-	OnlineAt  time.Time `gorm:"default:'nil'"` // 上线时间
-	OfflineAt time.Time `gorm:"default:'nil'"` // 下线时间
+	OnlineAt  time.Time `gorm:"default:null"` // 上线时间
+	OfflineAt time.Time `gorm:"default:null"` // 下线时间
 }
 
 func (d DevicesOnlineOffLineStatus) TableName() string {
