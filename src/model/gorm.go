@@ -2,12 +2,15 @@ package model
 
 import (
 	"fmt"
+	"time"
+
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	"github.com/lexkong/log"
 	"github.com/spf13/viper"
-	"time"
 )
+
+var DB *gorm.DB
 
 type User struct {
 	gorm.Model
@@ -25,52 +28,53 @@ type Product struct {
 	Price uint
 }
 
-func openDB(username, password, addr, name string) *gorm.DB {
-	config := fmt.Sprintf("%s:%s@(%s)/%s?charset=utf8&parseTime=%t&loc=%s",
-		username,
-		password,
-		addr,
-		name,
-		true,
-		//"Asia/Shanghai"),
-		"Local")
-
-	db, err := gorm.Open("mysql", config)
-	if err != nil {
-		log.Errorf(err, "Database connection failed. Database name: %s", name)
-		defer db.Close()
-	}
-
-	// set for db connection
-	setupDB(db)
-
-	return db
+type Device struct {
+	/* 设备信息表 */
+	gorm.Model
+	DeviceId   string `gorm:"not null;unique;size:14"`
+	DeviceName string `gorm:"size:255"`
+	Version    string `gorm:"size:100"`
+	IP         string `gorm:"size:100"`
 }
 
-func setupDB(db *gorm.DB) {
-	db.LogMode(viper.GetBool("db.log"))
-	db.DB().SetMaxOpenConns(viper.GetInt("db.max_open_connection")) // 用于设置最大打开的连接数，默认值为0表示不限制.设置最大的连接数，可以避免并发太高导致连接mysql出现too many connections的错误。
-	db.DB().SetMaxIdleConns(viper.GetInt("db.max_idle_connection")) // 用于设置闲置的连接数.设置闲置的连接数则当开启的一个连接使用完成后可以放在池里等候下一次使用。
+type DevicesOnlineOffLineStatus struct {
+	/* 设备在线离线状态储存表 */
+	gorm.Model
+	DeviceId  string    `gorm:"not null;size:14"`
+	OnlineAt  time.Time `gorm:"default:'nil'"` // 上线时间
+	OfflineAt time.Time `gorm:"default:'nil'"` // 下线时间
 }
 
-func InitDockerDB() *gorm.DB {
-	return openDB(viper.GetString("docker_db.username"),
-		viper.GetString("docker_db.password"),
-		viper.GetString("docker_db.addr"),
-		viper.GetString("docker_db.name"))
+func (d DevicesOnlineOffLineStatus) TableName() string {
+	return "devices_online_offline_status"
 }
 
 func DBInit() {
-	db := InitDockerDB()
-	setupDB(db)
+	config := fmt.Sprintf("%s:%s@(%s)/%s?charset=utf8&parseTime=%t&loc=%s",
+		viper.GetString("docker_db.username"),
+		viper.GetString("docker_db.password"),
+		viper.GetString("docker_db.addr"),
+		viper.GetString("docker_db.name"),
+		true,
+		//"Asia/Shanghai"),
+		"Local")
+	db, err := gorm.Open("mysql", config)
+	DB = db
+	if err != nil {
+		log.Errorf(err, "Database connection failed. Database name: %s", viper.GetString("docker_db.name"))
+		defer DB.Close()
+	}
+	DB.LogMode(viper.GetBool("db.log"))
+	DB.DB().SetMaxOpenConns(viper.GetInt("db.max_open_connection")) // 用于设置最大打开的连接数，默认值为0表示不限制.设置最大的连接数，可以避免并发太高导致连接mysql出现too many connections的错误。
+	DB.DB().SetMaxIdleConns(viper.GetInt("db.max_idle_connection")) // 用于设置闲置的连接数.设置闲置的连接数则当开启的一个连接使用完成后可以放在池里等候下一次使用。
 	// 自动迁移模式
-	db.AutoMigrate(&User{}, &Product{})
+	DB.AutoMigrate(&User{}, &Product{}, &Device{}, &DevicesOnlineOffLineStatus{})
 	// 启用日志记录器
-	db.LogMode(true)
+	DB.LogMode(true)
 	user := User{Name: "Jinzhu", Age: 18, Birthday: time.Now()}
 	//
-	db.Create(&user)
-	if db.NewRecord(user) {
+	DB.Create(&user)
+	if DB.NewRecord(user) {
 		fmt.Println("插入失败,主键为空")
 	}
 

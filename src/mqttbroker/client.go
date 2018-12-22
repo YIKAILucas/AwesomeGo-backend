@@ -1,12 +1,22 @@
-package main
+package mqttbroker
 
 import (
+	"awesomeProject/src/mongo"
+	"encoding/json"
 	"fmt"
 	"os"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"gopkg.in/mgo.v2/bson"
 )
+
+const DB_NAME = "acke"
+const DB_COLLECTION = "test"
+
+var ChannelString chan string = make(chan string, 5)
+var DeviceControlChannel = make(chan mqtt.Message, 2000)
+var DeviceInfoChannel = make(chan mqtt.Message, 2000)
 
 type MQCallback interface {
 	handlerFunc(client mqtt.Client, msg mqtt.Message)
@@ -16,10 +26,6 @@ type Content struct {
 	Content string `json:"content"`
 }
 
-var ChannelString chan string = make(chan string, 5)
-var DeviceControlChannel = make(chan mqtt.Message, 2000)
-var DeviceInfoChannel = make(chan mqtt.Message, 2000)
-
 type BrokerInfo struct {
 	client    mqtt.Client
 	brokerURL string
@@ -28,7 +34,8 @@ type BrokerInfo struct {
 }
 
 func InfoInit(mq *BrokerInfo) {
-	mq.brokerURL = "tcp://106.12.130.179:1883"
+	//mq.brokerURL = "tcp://106.12.130.179:1883"
+	mq.brokerURL = "tcp://127.0.0.1:1883"
 	//mq.clientId = string(rand.Int())
 	mq.clientId = "E470-B8A3-1"
 	mq.userName = "golang-server"
@@ -52,37 +59,79 @@ func MqConnect(mq *BrokerInfo, handler mqtt.MessageHandler) bool {
 	return mq.client.IsConnected()
 }
 
-/*
-定义回调函数
-*/
-var HandlerFunc mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
-	fmt.Printf("TOPIC: %s\n", msg.Topic())
-	fmt.Printf("MSG: %s\n", msg.Payload())
-	//var m Content
-	//var m map[string]string
-	//// TODO 添加责任链模式解析json
-	//err := json.Unmarshal(msg.Payload(), &m)
-	//if err != nil {
-	//	log.Error("sub解析错误:", err)
-	//}
-	//
-	//user := model.User{}
-	//user.Name = ""
-	//user.Balance = ""
-	//rel, err := model.X.Insert(user)
-	//_ = rel
-	//
-	//ChannelString <- m["content"]
-	//fmt.Println(len(ChannelString))
+func MqSaveDeviceControlLoop() {
+	/* 将设备控制指令存入数据库 */
+	for data := range DeviceControlChannel {
+		topic := data.Topic()
+		payload := data.Payload()
 
+		json_data := make(map[string]interface{})
+
+		err := json.Unmarshal(payload, &json_data)
+		if err != nil {
+			fmt.Printf("话题：%s 的消息，JSON解码失败", topic)
+		}
+		json_data["topic"] = data.Topic()
+		json_data["result"] = make(map[string]interface{})
+		_, ok := json_data["arg"]
+
+		if !ok {
+			json_data["arg"] = nil
+		}
+		_, ok = json_data["timeout"]
+		if !ok {
+			json_data["timeout"] = nil
+		}
+		json_data["create_time"] = time.Now()
+		json_data["last_update_time"] = time.Now()
+		mongo.Insert(DB_NAME, DB_COLLECTION, json_data)
+		if fmt.Sprintf("%T", json_data["id"]) == "string" {
+			fmt.Printf("控制指令已存入，ID: %s，话题：%s\n", json_data["id"], topic)
+		} else {
+			fmt.Printf("控制指令已存入，ID: %.f，话题：%s\n", json_data["id"], topic)
+		}
+	}
 }
 
-var DeviceControlHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
-	DeviceControlChannel <- msg
-}
+func MqSaveDeviceInfoLoop() {
+	/* 将设备信息存入数据库 */
+	for data := range DeviceInfoChannel {
+		topic := data.Topic()
+		payload := data.Payload()
 
-var DeviceInfoHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
-	DeviceInfoChannel <- msg
+		json_data := make(map[string]interface{})
+		err := json.Unmarshal(payload, &json_data)
+		if err != nil {
+			fmt.Printf("话题：%s 的消息，JSON解码失败\n", topic)
+		}
+
+		db_data := make(map[string]interface{})
+		mongo.FindOne(DB_NAME, DB_COLLECTION, bson.M{"id": json_data["id"]}, nil, db_data)
+
+		if len(db_data) != 0 {
+			result := make(map[string]interface{})
+			result["success"] = json_data["success"]
+			result["message"] = json_data["message"]
+			result["device_id"] = json_data["device_id"]
+			result["result"] = json_data["result"]
+			db_data["result"] = result
+			db_data["last_update_time"] = time.Now()
+			fmt.Println(json_data)
+
+			mongo.Update(DB_NAME, DB_COLLECTION, bson.M{"id": json_data["id"]}, db_data)
+			if fmt.Sprintf("%T", json_data["id"]) == "string" {
+				fmt.Printf("设备信息已存入，ID：%s，话题：%s\n", json_data["id"], topic)
+			} else {
+				fmt.Printf("设备信息已存入，ID：%.f，话题：%s\n", json_data["id"], topic)
+			}
+		} else {
+			if fmt.Sprintf("%T", json_data["id"]) == "string" {
+				fmt.Printf("设备信息未存入，ID：%s，未找到对应的表项\n", json_data["id"])
+			} else {
+				fmt.Printf("设备信息未存入，ID：%.f，未找到对应的表项\n", json_data["id"])
+			}
+		}
+	}
 }
 
 func Sub(mq *BrokerInfo, topic string, qos byte, callback mqtt.MessageHandler) {
