@@ -2,6 +2,7 @@ package handler
 
 import (
 	"awesomeProject/src/middleware/mongo"
+	"awesomeProject/src/middleware/mqttbroker"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -11,9 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"gopkg.in/mgo.v2/bson"
 )
-
-const DB_NAME = "acke"
-const DB_COLLECTION = "test"
 
 var HTTPPubChannel = make(chan HTTPPubDadaSheet, 1000)
 
@@ -62,12 +60,42 @@ func DeviceInfo(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "ID格式错误"})
 		return
 	}
-	db_data := make(map[string]interface{})
-	mongo.FindOne(DB_NAME, DB_COLLECTION, bson.M{"id": id}, nil, db_data)
-	if len(db_data) == 0 {
+	/*
+		db_data := make(map[string]interface{})
+		mongo.FindOne(DB_NAME, DB_COLLECTION, bson.M{"id": id}, nil, db_data)
+		if len(db_data) == 0 {
+			c.JSON(http.StatusNotFound, gin.H{"message": "未找到对应的记录！"})
+		} else {
+			c.JSON(http.StatusOK, db_data)
+			return
+		}
+	*/
+	cmd_data := make(map[string]interface{})
+	mongo.FindOne(mqttbroker.DB_NAME, mqttbroker.CMD_COLLECTION_MAP["default"], bson.M{"id": id}, nil, cmd_data)
+	if len(cmd_data) == 0 {
 		c.JSON(http.StatusNotFound, gin.H{"message": "未找到对应的记录！"})
 	} else {
-		c.JSON(http.StatusOK, db_data)
+		result_data := make(map[string]interface{})
+		result_data["success"] = cmd_data["success"]
+		result_data["message"] = cmd_data["message"]
+
+		cmd_name := "default"
+		cmd_name, ok := cmd_data["cmd"].(string)
+		var result_collection = mqttbroker.CMD_COLLECTION_MAP["default"]
+		_, ok = mqttbroker.CMD_COLLECTION_MAP[cmd_name]
+		if !ok {
+			// 未指定结果表时，从默认表中取
+			result_data["last_update_time"] = cmd_data["last_update_time"]
+			result_data["result"] = cmd_data["result"]
+		} else {
+			// 已指定表时，从相应的表中取
+			result_collection = mqttbroker.CMD_COLLECTION_MAP[cmd_name]
+			db_data := make(map[string]interface{})
+			mongo.FindOne(mqttbroker.DB_NAME, result_collection, bson.M{"device_id": cmd_data["device_id"]}, nil, db_data) // TODO:这里有Bug，结果未写入时怎么办？
+			result_data["last_update_time"] = db_data["last_update_time"]
+			result_data["result"] = db_data["result"]
+		}
+		c.JSON(http.StatusOK, result_data)
 		return
 	}
 }

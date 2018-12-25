@@ -12,7 +12,15 @@ import (
 )
 
 const DB_NAME = "acke"
-const DB_COLLECTION = "test"
+
+var CMD_COLLECTION_MAP = map[string]string{
+	"default":        "control", // 默认指令结果保存的路径
+	"get_box_info":   "devices_info",
+	"get_box_status": "devices_status",
+	"get_namelist":   "namelists",
+	"get_register":   "registers",
+	"get_attend":     "attends",
+}
 
 var ChannelString chan string = make(chan string, 5)
 var DeviceControlChannel = make(chan mqtt.Message, 2000)
@@ -70,11 +78,10 @@ func MqSaveDeviceControlLoop() {
 		err := json.Unmarshal(payload, &json_data)
 		if err != nil {
 			fmt.Printf("话题：%s 的消息，JSON解码失败", topic)
+			return
 		}
 		json_data["topic"] = data.Topic()
-		json_data["result"] = make(map[string]interface{})
 		_, ok := json_data["arg"]
-
 		if !ok {
 			json_data["arg"] = nil
 		}
@@ -82,9 +89,14 @@ func MqSaveDeviceControlLoop() {
 		if !ok {
 			json_data["timeout"] = nil
 		}
+		// 预先创建的结果字段
+		json_data["success"] = nil
+		json_data["message"] = nil
+		json_data["device_id"] = nil
+		json_data["result"] = nil
 		json_data["create_time"] = time.Now()
 		json_data["last_update_time"] = time.Now()
-		mongo.Insert(DB_NAME, DB_COLLECTION, json_data)
+		mongo.Insert(DB_NAME, CMD_COLLECTION_MAP["default"], json_data)
 		if fmt.Sprintf("%T", json_data["id"]) == "string" {
 			fmt.Printf("控制指令已存入，ID: %s，话题：%s\n", json_data["id"], topic)
 		} else {
@@ -103,22 +115,38 @@ func MqSaveDeviceInfoLoop() {
 		err := json.Unmarshal(payload, &json_data)
 		if err != nil {
 			fmt.Printf("话题：%s 的消息，JSON解码失败\n", topic)
+			return
 		}
 
-		db_data := make(map[string]interface{})
-		mongo.FindOne(DB_NAME, DB_COLLECTION, bson.M{"id": json_data["id"]}, nil, db_data)
+		cmd_data := make(map[string]interface{})
+		mongo.FindOne(DB_NAME, CMD_COLLECTION_MAP["default"], bson.M{"id": json_data["id"]}, nil, cmd_data)
+		if len(cmd_data) != 0 {
+			cmd_data["success"] = json_data["success"]
+			cmd_data["message"] = json_data["message"]
+			cmd_data["device_id"] = json_data["device_id"]
 
-		if len(db_data) != 0 {
-			result := make(map[string]interface{})
-			result["success"] = json_data["success"]
-			result["message"] = json_data["message"]
-			result["device_id"] = json_data["device_id"]
-			result["result"] = json_data["result"]
-			db_data["result"] = result
-			db_data["last_update_time"] = time.Now()
-			fmt.Println(json_data)
-
-			mongo.Update(DB_NAME, DB_COLLECTION, bson.M{"id": json_data["id"]}, db_data)
+			cmd_name := "default"
+			cmd_name, ok := json_data["cmd"].(string)
+			var result_collection = CMD_COLLECTION_MAP["default"]
+			_, ok = CMD_COLLECTION_MAP[cmd_name]
+			if !ok {
+				// 未指定结果表时，保存在默认表中
+				cmd_data["result"] = json_data["result"]
+			} else {
+				success, _ := json_data["success"].(bool)
+				if success {
+					// 已指定表时，保存在相应的表中
+					result_collection = CMD_COLLECTION_MAP[cmd_name]
+					result_data := make(map[string]interface{})
+					result_data["device_id"] = json_data["device_id"]
+					result_data["result"] = json_data["result"]
+					result_data["last_update_time"] = time.Now()
+					mongo.Upsert(DB_NAME, result_collection, bson.M{"device_id": json_data["device_id"]}, result_data)
+					fmt.Printf("已将指令结果存入表：%s\n", result_collection)
+				}
+			}
+			cmd_data["last_update_time"] = time.Now()
+			mongo.Update(DB_NAME, CMD_COLLECTION_MAP["default"], bson.M{"id": json_data["id"]}, cmd_data)
 			if fmt.Sprintf("%T", json_data["id"]) == "string" {
 				fmt.Printf("设备信息已存入，ID：%s，话题：%s\n", json_data["id"], topic)
 			} else {

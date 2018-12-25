@@ -1,9 +1,10 @@
 package mongo
 
 import (
-	"gopkg.in/mgo.v2"
 	"log"
 	"time"
+
+	"gopkg.in/mgo.v2"
 )
 
 var globalSession *mgo.Session
@@ -37,7 +38,7 @@ func init() {
 
 /*
 权限型MongoDB
-  */
+*/
 //func init() {
 //	info := &MongodbInfo{}
 //	InfoInit(info)
