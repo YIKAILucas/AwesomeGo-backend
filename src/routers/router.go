@@ -28,10 +28,11 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 	{
 		wechat.POST("/push", handler.PushController)
 	}
-	devices := g.Group("devices")
+	devices := g.Group("api/v1/devices/")
 	{
 		devices.POST("/control", handler.DeviceControl)
 		devices.GET("/info/:id", handler.DeviceInfo)
+		devices.GET("/list", handler.DeviceList)
 	}
 	return g
 }

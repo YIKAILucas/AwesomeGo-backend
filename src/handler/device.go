@@ -3,6 +3,7 @@ package handler
 import (
 	"awesomeProject/src/middleware/mongo"
 	"awesomeProject/src/middleware/mqttbroker"
+	"awesomeProject/src/model"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -60,16 +61,6 @@ func DeviceInfo(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "ID格式错误"})
 		return
 	}
-	/*
-		db_data := make(map[string]interface{})
-		mongo.FindOne(DB_NAME, DB_COLLECTION, bson.M{"id": id}, nil, db_data)
-		if len(db_data) == 0 {
-			c.JSON(http.StatusNotFound, gin.H{"message": "未找到对应的记录！"})
-		} else {
-			c.JSON(http.StatusOK, db_data)
-			return
-		}
-	*/
 	cmd_data := make(map[string]interface{})
 	mongo.FindOne(mqttbroker.DB_NAME, mqttbroker.CMD_COLLECTION_MAP["default"], bson.M{"id": id}, nil, cmd_data)
 	if len(cmd_data) == 0 {
@@ -100,4 +91,14 @@ func DeviceInfo(c *gin.Context) {
 	}
 }
 
-// 由时间戳生成ID： time.Now().UnixNano()/ 1e3
+func DeviceList(c *gin.Context) {
+	/* 获取设备列表 */
+	var devices []model.Device
+	var results []map[string]string
+
+	model.DB.Find(&devices)
+	for _, device := range devices {
+		results = append(results, map[string]string{"device_id": device.DeviceId, "device_name": device.DeviceName})
+	}
+	c.JSON(http.StatusOK, results)
+}
