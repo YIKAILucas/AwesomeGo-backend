@@ -96,7 +96,7 @@ func MqSaveDeviceControlLoop() {
 		json_data["result"] = nil
 		json_data["create_time"] = time.Now()
 		json_data["last_update_time"] = time.Now()
-		mongo.Insert(DB_NAME, CMD_COLLECTION_MAP["default"], json_data)
+		mongo.Upsert(DB_NAME, CMD_COLLECTION_MAP["default"], bson.M{"id": json_data["id"]}, json_data)
 		if fmt.Sprintf("%T", json_data["id"]) == "string" {
 			fmt.Printf("控制指令已存入，ID: %s，话题：%s\n", json_data["id"], topic)
 		} else {

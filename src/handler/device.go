@@ -37,7 +37,8 @@ func DeviceControl(c *gin.Context) {
 		return
 	}
 	json_data := make(map[string]interface{})
-	json_data["id"] = time.Now().UnixNano() / 1e3 // ID为16位时间戳
+	timestamp := time.Now().UnixNano() / 1e3 // ID为16位时间戳
+	json_data["id"] = timestamp
 	json_data["cmd"] = recv.Cmd
 	if recv.Arg != "" {
 		json_data["arg"] = recv.Arg
@@ -45,6 +46,8 @@ func DeviceControl(c *gin.Context) {
 	if recv.Timeout != 0 {
 		json_data["timeout"] = recv.Timeout
 	}
+	mongo.Insert(mqttbroker.DB_NAME, mqttbroker.CMD_COLLECTION_MAP["default"], map[string]int64{"id": timestamp}) // 预先插入一条记录，防止指令返回时异步条目还没有插入的问题
+
 	var pub_data HTTPPubDadaSheet
 	pub_data.Topic = fmt.Sprintf("tf/Attendance/v1/devices/%s/control", recv.DeviceId)
 	pub_data.Payload, _ = json.Marshal(json_data)
