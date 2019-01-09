@@ -46,7 +46,8 @@ func DeviceControl(c *gin.Context) {
 	if recv.Timeout != 0 {
 		json_data["timeout"] = recv.Timeout
 	}
-	mongo.Insert(mqttbroker.DB_NAME, mqttbroker.CMD_COLLECTION_MAP["default"], map[string]int64{"id": timestamp}) // 预先插入一条记录，防止指令返回时异步条目还没有插入的问题
+	// TODO: 这里写了一次数据库，Pub后又写入了一次数据库？
+	mongo.Insert(mqttbroker.DB_NAME, mqttbroker.CMD_COLLECTION_MAP["default"], map[string]interface{}{"id": timestamp, "cmd": recv.Cmd}) // 预先插入一条记录，防止指令返回时异步条目还没有插入的问题
 
 	var pub_data HTTPPubDadaSheet
 	pub_data.Topic = fmt.Sprintf("tf/Attendance/v1/devices/%s/control", recv.DeviceId)
@@ -85,7 +86,7 @@ func DeviceInfo(c *gin.Context) {
 			// 已指定表时，从相应的表中取
 			result_collection = mqttbroker.CMD_COLLECTION_MAP[cmd_name]
 			db_data := make(map[string]interface{})
-			mongo.FindOne(mqttbroker.DB_NAME, result_collection, bson.M{"device_id": cmd_data["device_id"]}, nil, db_data) // TODO:这里有Bug，结果未写入时怎么办？
+			mongo.FindOne(mqttbroker.DB_NAME, result_collection, bson.M{"device_id": cmd_data["device_id"]}, nil, db_data)
 			result_data["last_update_time"] = db_data["last_update_time"]
 			result_data["result"] = db_data["result"]
 		}
