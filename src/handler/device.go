@@ -6,6 +6,7 @@ import (
 	"awesomeProject/src/model"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
@@ -13,6 +14,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"gopkg.in/mgo.v2/bson"
 )
+
+// TODO: 将此部分配置放到配置文件中去
+var emq_config = map[string]string{
+	"host":     "http://106.12.130.179:18083",
+	"username": "admin",
+	"password": "public",
+	"node":     "e6d70b6bfd92@172.17.0.7",
+}
 
 var HTTPPubChannel = make(chan HTTPPubDadaSheet, 1000)
 
@@ -105,4 +114,44 @@ func DeviceList(c *gin.Context) {
 		results = append(results, map[string]string{"device_id": device.DeviceId, "device_name": device.DeviceName})
 	}
 	c.JSON(http.StatusOK, results)
+}
+
+func DeviceOnlineStatus(c *gin.Context) {
+	/* 获取某台设备的在线情况 */
+	device_id := c.Param("id")
+	url := fmt.Sprintf("%s/api/v2/nodes/%s/clients/%s", emq_config["host"], emq_config["node"], device_id)
+
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", url, nil)
+	req.SetBasicAuth(emq_config["username"], emq_config["password"])
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Printf("获取设备%s的在线情况失败：%s\n", device_id, err)
+		c.JSON(http.StatusOK, gin.H{"success": false, "msg": "请求后端失败", "result": nil})
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusOK {
+		resp_body, _ := ioutil.ReadAll(resp.Body)
+		resp_json := make(map[string]interface{})
+		err = json.Unmarshal(resp_body, &resp_json)
+		if err != nil {
+			fmt.Printf("获取设备%s的在线情况失败：%s\n", device_id, err)
+			c.JSON(http.StatusOK, gin.H{"success": false, "msg": "json解码失败", "result": nil})
+		}
+		results, _ := resp_json["result"].(map[string]interface{})
+		client_info, _ := results["objects"].([]interface{})
+		if len(client_info) > 0 {
+			c.JSON(http.StatusOK, gin.H{"success": true, "msg": "", "result": true})
+		} else {
+			c.JSON(http.StatusOK, gin.H{"success": true, "msg": "", "result": false})
+		}
+
+	} else if resp.StatusCode == http.StatusUnauthorized {
+		fmt.Printf("获取设备%s的在线情况失败，后端认证失败\n", device_id)
+		c.JSON(http.StatusOK, gin.H{"success": false, "msg": "后端认证失败", "result": nil})
+	} else {
+		fmt.Printf("获取设备%s的在线情况失败，状态码：%d\n", device_id, resp.StatusCode)
+		c.JSON(http.StatusOK, gin.H{"success": false, "msg": "未知错误", "result": nil})
+	}
 }
