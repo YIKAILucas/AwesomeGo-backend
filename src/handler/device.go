@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	http_url "net/url"
 	"strconv"
 	"time"
 
@@ -35,6 +36,33 @@ type http_recv struct {
 type HTTPPubDadaSheet struct {
 	Topic   string
 	Payload []byte
+}
+
+func requestEMQBackend(url string, params http_url.Values) (data map[string]interface{}, err error) {
+	/* 请求EMQ后端，请求结果 */
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", url, nil)
+	req.URL.RawQuery = params.Encode()
+	req.SetBasicAuth(emq_config["username"], emq_config["password"])
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("请求EMQ后端失败：请求失败")
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusOK {
+		resp_body, _ := ioutil.ReadAll(resp.Body)
+		resp_json := make(map[string]interface{})
+		err = json.Unmarshal(resp_body, &resp_json)
+		if err != nil {
+			return nil, fmt.Errorf("请求EMQ后端失败：JSON解码失败")
+		}
+		return resp_json, nil
+	} else if resp.StatusCode == http.StatusUnauthorized {
+		return nil, fmt.Errorf("请求EMQ后端失败：认证失败")
+	} else {
+		return nil, fmt.Errorf("请求EMQ后端失败：状态码：%d", resp.StatusCode)
+	}
 }
 
 // 发送控制指令到设备(即：发布一条消息到MQTT)
@@ -107,51 +135,65 @@ func DeviceInfo(c *gin.Context) {
 func DeviceList(c *gin.Context) {
 	/* 获取设备列表 */
 	var devices []model.Device
-	var results []map[string]string
+	var db_results []map[string]string
+	//var emq_results []map[string]interface{}
+	var url = fmt.Sprintf("%s/api/v2/nodes/%s/clients", emq_config["host"], emq_config["node"])
 
 	model.DB.Find(&devices)
 	for _, device := range devices {
-		results = append(results, map[string]string{"device_id": device.DeviceId, "device_name": device.DeviceName})
+		db_results = append(db_results, map[string]string{"device_id": device.DeviceId, "device_name": device.DeviceName, "connected_at": ""})
 	}
-	c.JSON(http.StatusOK, results)
+
+	params := http_url.Values{}
+	params.Set("page_size", "1")
+	req1, err := requestEMQBackend(url, params)
+	if err != nil {
+		fmt.Printf("设备列表：请求EMQ后端失败：%s\n", err)
+	} else {
+		r, _ := req1["result"].(map[string]interface{})
+		device_total, _ := r["total_num"].(float64)
+		if device_total > 0 {
+			params.Set("page_size", strconv.FormatFloat(device_total, 'f', 0, 64))
+			req2, err := requestEMQBackend(url, params)
+			if err != nil {
+				fmt.Printf("设备列表：请求EMQ后端失败：%s\n", err)
+			} else {
+				r, _ := req2["result"].(map[string]interface{})
+				infos, _ := r["objects"].([]interface{})
+				for _, v := range infos {
+					v, _ := v.(map[string]interface{})
+					d_id, _ := v["client_id"].(string)
+					d_name, _ := v["username"].(string)
+					d_connected_at, _ := v["connected_at"].(string)
+
+					for index, db_value := range db_results {
+						if db_value["device_id"] == d_id {
+							db_results = append(db_results[:index], db_results[index+1:]...) // 删除元素
+							db_results = append(db_results, map[string]string{"device_id": d_id, "device_name": d_name, "connected_at": d_connected_at})
+						}
+					}
+				}
+				c.JSON(http.StatusOK, db_results)
+			}
+
+		}
+	}
 }
 
 func DeviceOnlineStatus(c *gin.Context) {
 	/* 获取某台设备的在线情况 */
 	device_id := c.Param("id")
 	url := fmt.Sprintf("%s/api/v2/nodes/%s/clients/%s", emq_config["host"], emq_config["node"], device_id)
-
-	client := &http.Client{}
-	req, _ := http.NewRequest("GET", url, nil)
-	req.SetBasicAuth(emq_config["username"], emq_config["password"])
-	resp, err := client.Do(req)
+	req, err := requestEMQBackend(url, http_url.Values{})
 	if err != nil {
-		fmt.Printf("获取设备%s的在线情况失败：%s\n", device_id, err)
-		c.JSON(http.StatusOK, gin.H{"success": false, "msg": "请求后端失败", "result": nil})
+		fmt.Println(err)
+		c.JSON(http.StatusOK, gin.H{"success": false, "msg": "请求数据后端错误", "result": nil})
 	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode == http.StatusOK {
-		resp_body, _ := ioutil.ReadAll(resp.Body)
-		resp_json := make(map[string]interface{})
-		err = json.Unmarshal(resp_body, &resp_json)
-		if err != nil {
-			fmt.Printf("获取设备%s的在线情况失败：%s\n", device_id, err)
-			c.JSON(http.StatusOK, gin.H{"success": false, "msg": "json解码失败", "result": nil})
-		}
-		results, _ := resp_json["result"].(map[string]interface{})
-		client_info, _ := results["objects"].([]interface{})
-		if len(client_info) > 0 {
-			c.JSON(http.StatusOK, gin.H{"success": true, "msg": "", "result": true})
-		} else {
-			c.JSON(http.StatusOK, gin.H{"success": true, "msg": "", "result": false})
-		}
-
-	} else if resp.StatusCode == http.StatusUnauthorized {
-		fmt.Printf("获取设备%s的在线情况失败，后端认证失败\n", device_id)
-		c.JSON(http.StatusOK, gin.H{"success": false, "msg": "后端认证失败", "result": nil})
+	r, _ := req["result"].(map[string]interface{})
+	info, _ := r["objects"].([]interface{})
+	if len(info) > 0 {
+		c.JSON(http.StatusOK, gin.H{"success": true, "msg": "", "result": true})
 	} else {
-		fmt.Printf("获取设备%s的在线情况失败，状态码：%d\n", device_id, resp.StatusCode)
-		c.JSON(http.StatusOK, gin.H{"success": false, "msg": "未知错误", "result": nil})
+		c.JSON(http.StatusOK, gin.H{"success": true, "msg": "", "result": false})
 	}
 }
