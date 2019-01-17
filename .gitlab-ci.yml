@@ -1,4 +1,4 @@
-# image: ubuntu:latest
+image: ubuntu:latest
 
 stages:
   - test
@@ -17,6 +17,7 @@ before_script:
     - cd ..
     - ls
     - pwd
+    - service docker start
 
 # lint_code:
 #   stage: test
