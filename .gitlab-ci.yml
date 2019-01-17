@@ -5,6 +5,7 @@ stages:
   - build
 
 before_script:
+    - apt update
     - apt install docker.io
 #   - cd $GOPATH/src
 #   - mkdir -p gitlab.com/$CI_PROJECT_NAMESPACE
