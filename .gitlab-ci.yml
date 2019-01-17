@@ -16,12 +16,12 @@ stages:
 lint_code:
   stage: test
   script:
-    - make lint
+    # - make lint
 
 unit_tests:
   stage: test
   script:
-    - make test
+    # - make test
 
 build:
   stage: build
