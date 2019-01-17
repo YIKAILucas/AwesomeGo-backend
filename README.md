@@ -1,5 +1,5 @@
 
-![](https://gz.bcebos.com/v1/tenghui/6381547636706_.pic.jpg?authorization=bce-auth-v1%2Fad7910f9ed614f9788d5092ea8c719b0%2F2019-01-16T15%3A15%3A31Z%2F1800%2Fhost%2F6ace571da31d4925bd2b0a9db3c9b934bd42ab143519383229e8dcca5d8829c1)
+![icon](https://gz.bcebos.com/v1/tenghui/6381547636706_.pic.jpg?authorization=bce-auth-v1%2Fad7910f9ed614f9788d5092ea8c719b0%2F2019-01-16T15%3A15%3A31Z%2F1800%2Fhost%2F6ace571da31d4925bd2b0a9db3c9b934bd42ab143519383229e8dcca5d8829c1)
 
 [![Build Status](https://travis-ci.org/angular/angular.svg?branch=master)](https://travis-ci.org/angular/angular)
 
