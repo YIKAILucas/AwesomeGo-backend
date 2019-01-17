@@ -13,14 +13,14 @@ stages:
 #   - echo -e "machine gitlab.com\nlogin gitlab-ci-token\npassword ${CI_JOB_TOKEN}" > ~/.netrc
 #   - dep ensure -vendor-only
 
-lint_code:
-  stage: test
-  script:
-    # - make lint
+# lint_code:
+#   stage: test
+#   script:
+#     # - make lint
 
-unit_tests:
-  stage: test
-  script:
+# unit_tests:
+#   stage: test
+#   script:
     # - make test
 
 build:
