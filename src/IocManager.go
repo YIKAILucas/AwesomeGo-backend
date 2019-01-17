@@ -76,7 +76,8 @@ func TestNamedInstanceWithDependencies(t *testing.T) {
 
 	fmt.Println(c.A.A.Answer())
 }
-func main() {
-	//TestNamedInstanceWithDependencies(&testing.T{})
-	TestInjectSimple(&testing.T{})
-}
+
+//func main() {
+//TestNamedInstanceWithDependencies(&testing.T{})
+//TestInjectSimple(&testing.T{})
+//}

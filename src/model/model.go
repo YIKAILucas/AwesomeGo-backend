@@ -4,7 +4,6 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/go-xorm/xorm"
 	"github.com/jinzhu/gorm"
 )
 
@@ -24,6 +23,19 @@ type DevicesLifeCycle struct {
 	OfflineAt time.Time `gorm:"default:null"` // 下线时间
 }
 
+/**
+日活设备
+*/
+type ActiveDevice struct {
+	gorm.Model
+	DataTime time.Time `gorm:"default:null"`
+	Count    int       `gorm:"default:null"`
+}
+
 func (d DevicesLifeCycle) TableName() string {
 	return "devices_lifecycle"
+}
+
+func (a ActiveDevice) TableName() string {
+	return "active_device"
 }

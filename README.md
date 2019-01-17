@@ -1,19 +1,34 @@
+
+![](https://gz.bcebos.com/v1/tenghui/6381547636706_.pic.jpg?authorization=bce-auth-v1%2Fad7910f9ed614f9788d5092ea8c719b0%2F2019-01-16T15%3A15%3A31Z%2F1800%2Fhost%2F6ace571da31d4925bd2b0a9db3c9b934bd42ab143519383229e8dcca5d8829c1)
+
 [![Build Status](https://travis-ci.org/angular/angular.svg?branch=master)](https://travis-ci.org/angular/angular)
 
-# Awesome
 
-Awesome is a Wechat Message Queue platform for notify the user
+## Awesome is an awesome IOT platform
 
-## Quickstart
-
-
-## Changelog
-[Learn about the latest improvements](https://github.com/vimeracke/awesomeProject/blob/master/CHANGELOG.md)
+### Quickstart
+   **docker build awesomeProject**
 
 
 
+### Changelog
+[查看往期版本迭代](http://157.122.146.233:88/G2/awesome.back-end/blob/master/CHANGELOG.md)
 
 
+## 技术相关
+1. 存储方案
+	- MongoDB
+	- TSDB
+	- HBase
+	- PostgreSQL
+2. 消息中间件
+	- RabbitMQ
+	- EMQ
+3. 数据缓存
+	- Redis
+4. 通信协议
+	- MQTT
+### 中间件技术细节
 **EMQ开启上下线监听的方法：**
 ```
 - docker exec -it emq /bin/sh

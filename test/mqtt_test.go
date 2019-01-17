@@ -36,5 +36,5 @@ func MqttStart() {
 }
 
 func main() {
-    MqttStart()
+	MqttStart()
 }

@@ -22,18 +22,26 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 
 	weChat := g.Group("weChat")
 	{
-		weChat.POST("/pushfile", handler.PushFile)
+		//weChat.POST("/pushfile", handler.PushFile)
 	}
 	wechat := g.Group("wechat")
 	{
-		wechat.POST("/push", handler.PushController)
+		//wechat.POST("/pushController", handler.PushController)
 	}
+	_ = weChat
+	_ = wechat
+
 	devices := g.Group("api/v1/devices/")
 	{
 		devices.POST("/control", handler.DeviceControl)
 		devices.GET("/info/:id", handler.DeviceInfo)
 		devices.GET("/list", handler.DeviceList)
 		devices.GET("/online/:id", handler.DeviceOnlineStatus)
+	}
+
+	home := g.Group("api/v1/homepage")
+	{
+		home.GET("dau", handler.ActiveDevice)
 	}
 	return g
 }

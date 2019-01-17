@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/eclipse/paho.mqtt.golang"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -42,8 +42,8 @@ type BrokerInfo struct {
 }
 
 func InfoInit(mq *BrokerInfo) {
-	//mq.brokerURL = "tcp://106.12.130.179:1883"
-	mq.brokerURL = "tcp://127.0.0.1:1883"
+	mq.brokerURL = "tcp://106.12.130.179:1883"
+	//mq.brokerURL = "tcp://127.0.0.1:1883"
 	//mq.clientId = string(rand.Int())
 	mq.clientId = "E470-B8A3-1"
 	mq.userName = "golang-server"

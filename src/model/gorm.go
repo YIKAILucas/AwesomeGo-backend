@@ -22,7 +22,6 @@ type User struct {
 	IgnoreMe int `gorm:"-"` // 忽略这个字段
 }
 
-
 func DBInit() {
 	config := fmt.Sprintf("%s:%s@(%s)/%s?charset=utf8&parseTime=%t&loc=%s",
 		viper.GetString("docker_db.username"),
@@ -30,8 +29,7 @@ func DBInit() {
 		viper.GetString("docker_db.addr"),
 		viper.GetString("docker_db.name"),
 		true,
-		//"Asia/Shanghai"),
-		"Local")
+		"Asia/Shanghai")
 	db, err := gorm.Open("mysql", config)
 	DB = db
 	if err != nil {
@@ -45,12 +43,6 @@ func DBInit() {
 	DB.AutoMigrate(&User{}, &Device{}, &DevicesLifeCycle{})
 	// 启用日志记录器
 	DB.LogMode(true)
-	user := User{Name: "Jinzhu", Age: 18, Birthday: time.Now()}
-	//
-	DB.Create(&user)
-	if DB.NewRecord(user) {
-		fmt.Println("插入失败,主键为空")
-	}
 
 	//tx := db.Begin()
 	//// 注意，一旦你在一个事务中，使用tx作为数据库句柄
