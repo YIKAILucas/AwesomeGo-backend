@@ -31,4 +31,4 @@ before_script:
 build:
   stage: build
   script:
-    - docker build awesome
+    - docker build awesome.back-end
