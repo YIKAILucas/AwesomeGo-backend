@@ -4,14 +4,14 @@ stages:
   - test
   - build
 
-before_script:
-  - cd $GOPATH/src
-  - mkdir -p gitlab.com/$CI_PROJECT_NAMESPACE
-  - cd gitlab.com/$CI_PROJECT_NAMESPACE
-  - ln -s $CI_PROJECT_DIR
-  - cd $CI_PROJECT_NAME
-  - echo -e "machine gitlab.com\nlogin gitlab-ci-token\npassword ${CI_JOB_TOKEN}" > ~/.netrc
-  - dep ensure -vendor-only
+# before_script:
+#   - cd $GOPATH/src
+#   - mkdir -p gitlab.com/$CI_PROJECT_NAMESPACE
+#   - cd gitlab.com/$CI_PROJECT_NAMESPACE
+#   - ln -s $CI_PROJECT_DIR
+#   - cd $CI_PROJECT_NAME
+#   - echo -e "machine gitlab.com\nlogin gitlab-ci-token\npassword ${CI_JOB_TOKEN}" > ~/.netrc
+#   - dep ensure -vendor-only
 
 lint_code:
   stage: test
@@ -26,4 +26,4 @@ unit_tests:
 build:
   stage: build
   script:
-    - make
+    - docker build awesome
