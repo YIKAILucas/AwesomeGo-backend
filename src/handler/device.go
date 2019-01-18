@@ -181,7 +181,7 @@ func DeviceList(c *gin.Context) {
 }
 
 func DeviceCount(c *gin.Context) {
-	/* 获取设备总数 */
+	/* 获取设备在线数/总数 */
 	var url = fmt.Sprintf("%s/api/v2/nodes/%s/clients", emq_config["host"], emq_config["node"])
 	var params = http_url.Values{}
 	params.Set("page_size", "1")
@@ -189,11 +189,13 @@ func DeviceCount(c *gin.Context) {
 	req, err := requestEMQBackend(url, params)
 	if err != nil {
 		fmt.Println(err)
-		c.JSON(http.StatusOK, gin.H{"success": false, "msg": "请求数据后端错误", "result": nil})
+		c.JSON(http.StatusOK, gin.H{"success": false, "msg": "请求数据后端错误", "result": map[string]interface{}{"online": nil, "total": nil}})
 	} else {
 		r, _ := req["result"].(map[string]interface{})
-		device_total, _ := r["total_num"].(float64)
-		c.JSON(http.StatusOK, gin.H{"success": true, "msg": "", "result": device_total})
+		online_total, _ := r["total_num"].(float64)
+		var device_total float64
+		model.DB.Model(&model.Device{}).Count(&device_total)
+		c.JSON(http.StatusOK, gin.H{"success": true, "msg": "", "result": map[string]float64{"online": online_total, "total": device_total}})
 	}
 }
 
