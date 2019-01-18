@@ -29,7 +29,8 @@ func DBInit() {
 		viper.GetString("docker_db.addr"),
 		viper.GetString("docker_db.name"),
 		true,
-		"Asia/Shanghai")
+		//"Asia/Shanghai")
+		"Local")
 	db, err := gorm.Open("mysql", config)
 	DB = db
 	if err != nil {

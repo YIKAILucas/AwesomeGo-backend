@@ -180,8 +180,25 @@ func DeviceList(c *gin.Context) {
 	}
 }
 
+func DeviceCount(c *gin.Context) {
+	/* 获取设备总数 */
+	var url = fmt.Sprintf("%s/api/v2/nodes/%s/clients", emq_config["host"], emq_config["node"])
+	var params = http_url.Values{}
+	params.Set("page_size", "1")
+
+	req, err := requestEMQBackend(url, params)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(http.StatusOK, gin.H{"success": false, "msg": "请求数据后端错误", "result": nil})
+	} else {
+		r, _ := req["result"].(map[string]interface{})
+		device_total, _ := r["total_num"].(float64)
+		c.JSON(http.StatusOK, gin.H{"success": true, "msg": "", "result": device_total})
+	}
+}
+
 func DeviceOnlineStatus(c *gin.Context) {
-	/* 获取某台设备的在线情况 */
+	/* 获取某台设备的在线情况 TODO: 前端V0.2不再使用此接口 */
 	device_id := c.Param("id")
 	url := fmt.Sprintf("%s/api/v2/nodes/%s/clients/%s", emq_config["host"], emq_config["node"], device_id)
 	req, err := requestEMQBackend(url, http_url.Values{})

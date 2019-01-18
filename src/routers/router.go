@@ -36,6 +36,7 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 		devices.POST("/control", handler.DeviceControl)
 		devices.GET("/info/:id", handler.DeviceInfo)
 		devices.GET("/list", handler.DeviceList)
+		devices.GET("/count", handler.DeviceCount)
 		devices.GET("/online/:id", handler.DeviceOnlineStatus)
 	}
 
