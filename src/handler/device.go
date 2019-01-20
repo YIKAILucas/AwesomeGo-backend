@@ -10,6 +10,7 @@ import (
 	"net/http"
 	http_url "net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -218,7 +219,34 @@ func DeviceVersionInfo(c *gin.Context) {
 		result = append(result, map[string]interface{}{"版本号": k, "设备数": v})
 	}
 	c.JSON(http.StatusOK, result)
+}
 
+func DeviceAreaInfo(c *gin.Context) {
+	/* 获取设备地区(平台)分布信息 */
+	var area_info = make(map[string]float64)
+	var db_area_info []map[string]interface{}
+	_ = mongo.FindAll(mqttbroker.DB_NAME, mqttbroker.CMD_COLLECTION_MAP["get_box_info"], nil, bson.M{"result.project_info.firmName": true}, &db_area_info)
+	for _, item := range db_area_info {
+		result, _ := item["result"].(map[string]interface{})
+		project_info, _ := result["project_info"].(map[string]interface{})
+		area, _ := project_info["firmName"].(string)
+		if area == "" {
+			area = "未知"
+		} else {
+			area = strings.Replace(area, "实名制平台", "", -1)
+			area = strings.Replace(area, "实名制", "", -1)
+		}
+		_, ok := area_info[area]
+		if !ok {
+			area_info[area] = 0
+		}
+		area_info[area] = area_info[area] + 1
+	}
+	var result []map[string]interface{}
+	for k, v := range area_info {
+		result = append(result, map[string]interface{}{"地区": k, "设备数": v})
+	}
+	c.JSON(http.StatusOK, result)
 }
 
 func DeviceOnlineStatus(c *gin.Context) {

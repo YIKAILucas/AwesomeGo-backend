@@ -38,6 +38,7 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 		devices.GET("/list", handler.DeviceList)
 		devices.GET("/count", handler.DeviceCount)
 		devices.GET("/versioninfo", handler.DeviceVersionInfo)
+		devices.GET("/areainfo", handler.DeviceAreaInfo)
 		devices.GET("/online/:id", handler.DeviceOnlineStatus)
 	}
 
