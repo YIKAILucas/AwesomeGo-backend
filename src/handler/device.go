@@ -199,6 +199,28 @@ func DeviceCount(c *gin.Context) {
 	}
 }
 
+func DeviceVersionInfo(c *gin.Context) {
+	/* 获取设备版本分布信息 */
+	var version_info = make(map[string]float64)
+	var db_version_info []map[string]interface{}
+	_ = mongo.FindAll(mqttbroker.DB_NAME, mqttbroker.CMD_COLLECTION_MAP["get_box_info"], nil, bson.M{"result.box_version": true}, &db_version_info)
+	for _, item := range db_version_info {
+		result, _ := item["result"].(map[string]interface{})
+		version, _ := result["box_version"].(string)
+		_, ok := version_info[version]
+		if !ok {
+			version_info[version] = 0
+		}
+		version_info[version] = version_info[version] + 1
+	}
+	var result []map[string]interface{}
+	for k, v := range version_info {
+		result = append(result, map[string]interface{}{"版本号": k, "设备数": v})
+	}
+	c.JSON(http.StatusOK, result)
+
+}
+
 func DeviceOnlineStatus(c *gin.Context) {
 	/* 获取某台设备的在线情况 TODO: 前端V0.2不再使用此接口 */
 	device_id := c.Param("id")
