@@ -10,6 +10,7 @@ import (
 	"net/http"
 	http_url "net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -181,7 +182,7 @@ func DeviceList(c *gin.Context) {
 }
 
 func DeviceCount(c *gin.Context) {
-	/* 获取设备总数 */
+	/* 获取设备在线数/总数 */
 	var url = fmt.Sprintf("%s/api/v2/nodes/%s/clients", emq_config["host"], emq_config["node"])
 	var params = http_url.Values{}
 	params.Set("page_size", "1")
@@ -189,12 +190,63 @@ func DeviceCount(c *gin.Context) {
 	req, err := requestEMQBackend(url, params)
 	if err != nil {
 		fmt.Println(err)
-		c.JSON(http.StatusOK, gin.H{"success": false, "msg": "请求数据后端错误", "result": nil})
+		c.JSON(http.StatusOK, gin.H{"success": false, "msg": "请求数据后端错误", "result": map[string]interface{}{"online": nil, "total": nil}})
 	} else {
 		r, _ := req["result"].(map[string]interface{})
-		device_total, _ := r["total_num"].(float64)
-		c.JSON(http.StatusOK, gin.H{"success": true, "msg": "", "result": device_total})
+		online_total, _ := r["total_num"].(float64)
+		var device_total float64
+		model.DB.Model(&model.Device{}).Count(&device_total)
+		c.JSON(http.StatusOK, gin.H{"success": true, "msg": "", "result": map[string]float64{"online": online_total, "total": device_total}})
 	}
+}
+
+func DeviceVersionInfo(c *gin.Context) {
+	/* 获取设备版本分布信息 */
+	var version_info = make(map[string]float64)
+	var db_version_info []map[string]interface{}
+	_ = mongo.FindAll(mqttbroker.DB_NAME, mqttbroker.CMD_COLLECTION_MAP["get_box_info"], nil, bson.M{"result.box_version": true}, &db_version_info)
+	for _, item := range db_version_info {
+		result, _ := item["result"].(map[string]interface{})
+		version, _ := result["box_version"].(string)
+		_, ok := version_info[version]
+		if !ok {
+			version_info[version] = 0
+		}
+		version_info[version] = version_info[version] + 1
+	}
+	var result []map[string]interface{}
+	for k, v := range version_info {
+		result = append(result, map[string]interface{}{"版本号": k, "设备数": v})
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+func DeviceAreaInfo(c *gin.Context) {
+	/* 获取设备地区(平台)分布信息 */
+	var area_info = make(map[string]float64)
+	var db_area_info []map[string]interface{}
+	_ = mongo.FindAll(mqttbroker.DB_NAME, mqttbroker.CMD_COLLECTION_MAP["get_box_info"], nil, bson.M{"result.project_info.firmName": true}, &db_area_info)
+	for _, item := range db_area_info {
+		result, _ := item["result"].(map[string]interface{})
+		project_info, _ := result["project_info"].(map[string]interface{})
+		area, _ := project_info["firmName"].(string)
+		if area == "" {
+			area = "未知"
+		} else {
+			area = strings.Replace(area, "实名制平台", "", -1)
+			area = strings.Replace(area, "实名制", "", -1)
+		}
+		_, ok := area_info[area]
+		if !ok {
+			area_info[area] = 0
+		}
+		area_info[area] = area_info[area] + 1
+	}
+	var result []map[string]interface{}
+	for k, v := range area_info {
+		result = append(result, map[string]interface{}{"地区": k, "设备数": v})
+	}
+	c.JSON(http.StatusOK, result)
 }
 
 func DeviceOnlineStatus(c *gin.Context) {
