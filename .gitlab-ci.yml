@@ -1,0 +1,55 @@
+image: ubuntu:latest
+variables:
+  image: awesome-go:v1.0
+projectname = $(awesome.back-end)
+stages:
+  - before_script
+  - test
+  - build
+
+before_script:
+  - apt update -y
+  - apt install docker.io -y
+  - cd ..
+  - ls
+  - pwd
+  - service docker start
+
+lint_code:
+  stage: test
+  script:
+    - make lint
+
+test:
+  stage: test
+  script:
+    - go tool vet awesomeProject/src/*.go
+    - go test awesomeProject/src/*.go
+
+#deps:
+
+build:
+  stage: build
+  script:
+    - docker build -t awesome-go:v1.0 awesome.back-end
+
+
+deploy:
+  stage: deploy_dev
+  only:
+    - master
+#  environment:
+#    name: development
+  script:
+    # 发布到阿里云容器
+    - docker login --username=17612011031 registry.cn-shenzhen.aliyuncs.com --p acke1996
+    - docker tag awesome-go:v1.0 registry.cn-shenzhen.aliyuncs.com/acke/awesome-go:v1.0
+    - docker push registry.cn-shenzhen.aliyuncs.com/acke/awesome-go:v1.0
+    # 发布程序
+#    - dotnet publish -c Release --output /publish
+    # 停止服务器网站的服务
+#    - ssh root@$DEPLOY_SERVER_DEV "systemctl stop $KESTREL_SERVICENAME"
+    # scp复制发布文件到服务器
+#    - scp -r /publish/* root@$DEPLOY_SERVER_DEV:$WEB_DIR
+    # 启动服务器的服务
+#    - ssh root@$DEPLOY_SERVER_DEV "systemctl start $KESTREL_SERVICENAME"

@@ -11,5 +11,5 @@ RUN go get github.com/jinzhu/gorm
 
 RUN go build .
 
-EXPOSE 12019
-ENTRYPOINT ["./src"]
+EXPOSE 2019
+#ENTRYPOINT ["./src"]
