@@ -17,6 +17,7 @@ before_script:
   - ls
   - pwd
   - service docker start
+  - govendor sync
 
 #lint_code:
 #  stage: test
