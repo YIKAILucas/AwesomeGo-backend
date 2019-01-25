@@ -1,7 +1,7 @@
-image: ubuntu:latest
-#variables:
-#  image: awesome-go:v1.0
-#projectname = $(awesome.back-end)
+#image: ubuntu:latest
+variables:
+  IMAGE: awesome-go:v1.0
+  VERSION: v1.0
 stages:
   - before_script
   - test
@@ -42,8 +42,8 @@ deploy:
     - master
   script:
     - docker login --username=17612011031 registry.cn-shenzhen.aliyuncs.com --p acke1996
-    - docker tag awesome-go:v1.0 registry.cn-shenzhen.aliyuncs.com/acke/awesome-go:v1.0
-    - docker push registry.cn-shenzhen.aliyuncs.com/acke/awesome-go:v1.0
+    - docker tag $(IMAGE) registry.cn-shenzhen.aliyuncs.com/acke/awesome-go:$(VERSION)
+    - docker push registry.cn-shenzhen.aliyuncs.com/acke/awesome-go:$(VERSION)
     # 发布程序
 #    - dotnet publish -c Release --output /publish
     # 停止服务器网站的服务
