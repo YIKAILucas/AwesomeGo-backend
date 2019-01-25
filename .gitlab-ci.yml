@@ -37,7 +37,7 @@ build:
 
 # 发布到阿里云容器
 deploy:
-  stage: deploy_dev
+  stage: deploy
   only:
     - master
   script:
