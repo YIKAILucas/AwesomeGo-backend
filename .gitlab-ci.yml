@@ -26,15 +26,15 @@ before_script:
 test:
   stage: test
   script:
-    - go tool vet $(PROJECT)/src/*.go
-    - go test $(PROJECT)/src/*.go
+    - go tool vet awesome.back-end/src/*.go
+    - go test awesome.back-end/src/*.go
 
 #deps:
 
 build:
   stage: build
   script:
-    - docker build -t $(PROJECT) awesome.back-end
+    - docker build -t awesome.back-end awesome.back-end
 
 
 # 发布到阿里云容器
