@@ -33,18 +33,18 @@ build:
   script:
     - docker build -t awesome-go:v1.0 awesome.back-end
 
-#
-#deploy:
-#  stage: deploy_dev
-#  only:
-#    - master
-##  environment:
-##    name: development
-#  script:
-#    # 发布到阿里云容器
-#    - docker login --username=17612011031 registry.cn-shenzhen.aliyuncs.com --p acke1996
-#    - docker tag awesome-go:v1.0 registry.cn-shenzhen.aliyuncs.com/acke/awesome-go:v1.0
-#    - docker push registry.cn-shenzhen.aliyuncs.com/acke/awesome-go:v1.0
+
+deploy:
+  stage: deploy_dev
+  only:
+    - master
+#  environment:
+#    name: development
+  script:
+    # 发布到阿里云容器
+    - docker login --username=17612011031 registry.cn-shenzhen.aliyuncs.com --p acke1996
+    - docker tag awesome-go:v1.0 registry.cn-shenzhen.aliyuncs.com/acke/awesome-go:v1.0
+    - docker push registry.cn-shenzhen.aliyuncs.com/acke/awesome-go:v1.0
     # 发布程序
 #    - dotnet publish -c Release --output /publish
     # 停止服务器网站的服务
