@@ -15,10 +15,10 @@ before_script:
   - pwd
   - service docker start
 
-lint_code:
-  stage: test
-  script:
-    - make lint
+#lint_code:
+#  stage: test
+#  script:
+#    - make lint
 
 test:
   stage: test
