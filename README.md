@@ -1,5 +1,5 @@
 
-![icon](https://tenghui.gz.bcebos.com/6381547636706_.pic.jpg?authorization=bce-auth-v1/ad7910f9ed614f9788d5092ea8c719b0/2019-01-17T06:23:38Z/-1/host/10d51ed6cef2ecb3b97d21dbfb793ed502424ef3b0d215597cc6335343fcd8f7)
+![icon](https://vimeracke.oss-cn-shenzhen.aliyuncs.com/ima.jpeg)
 
 [![Build Status](https://travis-ci.org/angular/angular.svg?branch=master)](https://travis-ci.org/angular/angular)
 
